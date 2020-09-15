@@ -1,5 +1,6 @@
 package com.AHeaven.ui.tabs;
 
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -20,7 +21,7 @@ import com.AHeaven.User;
 import java.io.IOException;
 
 //класс фрагмента, который отображает очередь воспроизведения
-public class QueueFragment extends Fragment {
+public class QueueFragment extends Fragment implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener {
     View fragment;
     boolean playState;
     MediaPlayer player;
@@ -34,7 +35,7 @@ public class QueueFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        player = MediaPlayer.create(getContext(),R.raw.song);
+        player = new MediaPlayer();/*MediaPlayer.create(getContext(),R.raw.song);
         player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
@@ -46,7 +47,7 @@ public class QueueFragment extends Fragment {
                     t.printStackTrace();
                 }
             }
-        });
+        });*/
     }
 
     @Override
@@ -128,8 +129,8 @@ public class QueueFragment extends Fragment {
             minus.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (finalI == (User.getQueueLength()-1) && finalI==User.nomPlaying)
-                        User.nomPlaying=0;
+                    if ((User.getQueueLength()-1)==User.nomPlaying)
+                        User.nomPlaying=Math.max(User.nomPlaying-1,0);
                     User.removeFromQueue(finalI);
                 }
             });
@@ -162,18 +163,21 @@ public class QueueFragment extends Fragment {
     }
 
     public void stopSong(){
-        player.stop();
+        player.pause();
     }
 
     public void startSong(){
-        /*try {
+        try {
+            player.release();
+            player = new MediaPlayer();
             player.setDataSource(User.getFromQueue(User.nomPlaying).source);
+            player.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            player.setOnCompletionListener(this);
             player.prepare();
-            player.seekTo(0);
             player.start();
         } catch (IOException e) {
             e.printStackTrace();
-        }*/
+        }
     }
 
     private void addSongNameAuthor(Song x, LinearLayout layout){
@@ -194,5 +198,15 @@ public class QueueFragment extends Fragment {
                 ViewGroup.LayoutParams.WRAP_CONTENT,1f));
 
         layout.addView(names);
+    }
+
+    @Override
+    public void onPrepared(MediaPlayer mp) {
+        player.start();
+    }
+
+    @Override
+    public void onCompletion(MediaPlayer mp) {
+        //todo
     }
 }

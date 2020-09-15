@@ -3,11 +3,12 @@ package com.AHeaven;
 import java.util.ArrayList;
 
 public class Playlist {
-    public int length;
+    public String name;
     private ArrayList<Song> songs;
 
-    public Playlist(){
+    public Playlist(String _name){
         songs = new ArrayList<>();
+        name = _name;
     }
 
     public Song[] getSongs() {
@@ -26,4 +27,5 @@ public class Playlist {
     public void removeSong(Song x){
         songs.remove(x);
     }
+    public int getLength(){return songs.size();}
 }

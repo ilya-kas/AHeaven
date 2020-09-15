@@ -1,6 +1,5 @@
 package com.AHeaven;
 
-import com.AHeaven.ui.TabSelectionAdapter;
 import com.AHeaven.ui.tabs.QueueFragment;
 
 import java.util.ArrayList;
@@ -21,7 +20,7 @@ public class User {
         playlistCount = 0;
 
         playlistCount+=1;              //пока что инициализация 2 плейлистами
-        playlists.add(new Playlist());
+        playlists.add(new Playlist("New"));
     }
 
     public static Playlist getPlaylist(int nom) {
@@ -53,9 +52,11 @@ public class User {
         }
     }
     public static void addToQueue(Playlist list){
+        if (list.getLength()==0)
+            return;
         queue.addAll(Arrays.asList(list.getSongs()));
         q.updateUI();
-        if (queue.size()==list.length){
+        if (queue.size()==list.getLength()){
             q.startSong();
             q.stopSong();
         }
@@ -73,5 +74,10 @@ public class User {
     }
     public static int getQueueLength(){
         return queue.size();
+    }
+
+    public static void addPlaylist(Playlist list){
+        playlistCount++;
+        playlists.add(list);
     }
 }
