@@ -2,6 +2,7 @@ package com.AHeaven.ui.tabs;
 
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,6 +19,7 @@ import com.AHeaven.R;
 import com.AHeaven.Song;
 import com.AHeaven.User;
 
+import java.io.File;
 import java.io.IOException;
 
 //класс фрагмента, который отображает очередь воспроизведения
@@ -84,7 +86,7 @@ public class QueueFragment extends Fragment implements MediaPlayer.OnPreparedLis
                 if (User.nomPlaying<0)
                     User.nomPlaying=User.getQueueLength()-1;
                 updateUI();
-                startSong();
+                prepareSong();
             }
         });
 
@@ -95,7 +97,7 @@ public class QueueFragment extends Fragment implements MediaPlayer.OnPreparedLis
                 User.nomPlaying++;
                 User.nomPlaying%=User.getQueueLength();
                 updateUI();
-                startSong();
+                prepareSong();
             }
         });
         return fragment;
@@ -137,7 +139,7 @@ public class QueueFragment extends Fragment implements MediaPlayer.OnPreparedLis
 
             TextView tv_Length = new TextView(getContext());
             if (current.length<60)
-                text = String.valueOf(current.length);
+                text = "0:"+ current.length;
             else
             if (current.length%60<10)
                 text = current.length/60+":0"+current.length%60;
@@ -155,29 +157,44 @@ public class QueueFragment extends Fragment implements MediaPlayer.OnPreparedLis
                 public void onClick(View v) {
                     User.nomPlaying= finalI;
                     updateUI();
-                    startSong();
+                    prepareSong();
+                    player.start();
                 }
             });
             queue.addView(line);
         }
     }
 
-    public void stopSong(){
+    public void pauseSong(){
         player.pause();
     }
 
-    public void startSong(){
-        try {
+    public void prepareSong(){
+        System.out.println(User.getFromQueue(User.nomPlaying).source);
+        player = MediaPlayer.create(getContext(),User.getFromQueue(User.nomPlaying).source);
+        player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                try {
+                    player.prepare();
+                    player.seekTo(0);
+                }
+                catch (Throwable t) {
+                    t.printStackTrace();
+                }
+            }
+        });
+        /*try {
             player.release();
             player = new MediaPlayer();
             player.setDataSource(User.getFromQueue(User.nomPlaying).source);
             player.setAudioStreamType(AudioManager.STREAM_MUSIC);
             player.setOnCompletionListener(this);
             player.prepare();
-            player.start();
+            player.seekTo(0);
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
     }
 
     private void addSongNameAuthor(Song x, LinearLayout layout){

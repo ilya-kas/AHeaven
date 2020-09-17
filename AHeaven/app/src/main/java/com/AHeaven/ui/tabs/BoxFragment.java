@@ -20,6 +20,8 @@ import com.AHeaven.R;
 import com.AHeaven.Song;
 import com.AHeaven.User;
 
+import java.io.File;
+
 import static android.app.Activity.RESULT_OK;
 
 /**
@@ -118,7 +120,7 @@ public class BoxFragment extends Fragment {
             String text;
             TextView tv_Length = new TextView(getContext());
             if (songs[i].length<60)
-                text = String.valueOf(songs[i].length);
+                text = "0:"+ songs[i].length;
             else
             if (songs[i].length%60<10)
                 text = songs[i].length/60+":0"+songs[i].length%60;
@@ -154,8 +156,7 @@ public class BoxFragment extends Fragment {
         switch (requestCode){
             case addSongCode:
                 if (resultCode == RESULT_OK){
-                    String path = data.getData().getPath();
-                    playlist.addSong(new Song(path,"Name",322));
+                    playlist.addSong(new Song(data.getData(),"Name",322));
                     updateUI();
                 }
                 break;

@@ -27,6 +27,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
  */
 public class PlaylistFragment extends Fragment {
     View fragment;
+    ViewGroup _container;
 
     public static PlaylistFragment newInstance() {
         PlaylistFragment fragment = new PlaylistFragment();
@@ -44,6 +45,7 @@ public class PlaylistFragment extends Fragment {
             Bundle savedInstanceState) {
 
         fragment = inflater.inflate(R.layout.playlists_fragment, container, false);
+        _container = container;
 
         final Dialog addPlaylist = new Dialog(getContext());
         addPlaylist.setContentView(R.layout.playlist_creation_dialog);
@@ -70,14 +72,23 @@ public class PlaylistFragment extends Fragment {
         return fragment;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateUI();
+    }
+
     void updateUI(){
         TableLayout layout = fragment.findViewById(R.id.table_layout);
         layout.removeAllViews();
+        TableRow.LayoutParams params = new TableRow.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+        params.setMargins(MainActivity.DPtoPX(20), 0, 0, 0);
+
         for (int i = 0; i < User.playlistCount; i += 2) {                 //добавляю плейлисты
             TableRow row = new TableRow(getContext());
-            row.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+            row.setLayoutParams(new TableLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
             row.setBackgroundResource(R.drawable.shelf);
-            row.setPadding(MainActivity.DPtoPX(7), MainActivity.DPtoPX(16), 0, 0);
+            row.setPadding(MainActivity.DPtoPX(20), MainActivity.DPtoPX(16), 0, 0);
 
             TextView left = new TextView(getContext());    //левый плейлист в строке
             left.setBackground(getResources().getDrawable(R.drawable.playlist));
@@ -85,7 +96,7 @@ public class PlaylistFragment extends Fragment {
             left.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
             left.setTextColor(getResources().getColor(R.color.white));
             left.setPadding(MainActivity.DPtoPX(37), MainActivity.DPtoPX(97), 0, 0);
-            row.addView(left);           //добавляем плейлист
+            row.addView(left);//добавляем плейлист
 
             final int finalI = i;
             left.setOnClickListener(new View.OnClickListener() {
@@ -100,7 +111,6 @@ public class PlaylistFragment extends Fragment {
                 }
             });
 
-
             if (i + 1 < User.playlistCount) {                        //правый плейлист в строке
                 TextView right = new TextView(getContext());    //левый плейлист в строке
                 right.setBackground(getResources().getDrawable(R.drawable.playlist));
@@ -108,6 +118,7 @@ public class PlaylistFragment extends Fragment {
                 right.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
                 right.setTextColor(getResources().getColor(R.color.white));
                 right.setPadding(MainActivity.DPtoPX(37), MainActivity.DPtoPX(97), 0, 0);
+                right.setLayoutParams(params);
                 row.addView(right); //добавляем плейлист
 
                 right.setOnClickListener(new View.OnClickListener() {

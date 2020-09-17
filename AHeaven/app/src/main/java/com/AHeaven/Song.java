@@ -1,7 +1,9 @@
 package com.AHeaven;
 
+import android.net.Uri;
+
 public class Song {
-    public String source;
+    public Uri source;
     public String name;
     public String author;
     public int length; //в секундах
@@ -11,7 +13,7 @@ public class Song {
      * @param name имя песни
      * @param length длина песни в секундах
      */
-    public Song(String source, String name, int length) {
+    public Song(Uri source, String name, int length) {
         this.source = source;
         this.name = name;
         this.length = length;
@@ -21,7 +23,7 @@ public class Song {
     /**
      * @param author исполнитель/автор
      */
-    public Song(String source, String name, String author, int length) {
+    public Song(Uri source, String name, String author, int length) {
         this.source = source;
         this.name = name;
         this.author = author;
