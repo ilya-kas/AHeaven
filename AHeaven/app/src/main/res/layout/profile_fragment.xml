@@ -19,15 +19,4 @@
         tools:layout_constraintLeft_creator="1"
         tools:layout_constraintTop_creator="1" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/playlist"
-        android:text="Тащи катку"
-        android:textSize="15sp"
-        android:textColor="@color/white"
-        android:paddingTop="97dp"
-        android:paddingLeft="37dp"
-        tools:ignore="MissingConstraints" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>

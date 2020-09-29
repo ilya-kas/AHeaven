@@ -31,15 +31,22 @@
             android:layout_height="match_parent"
             android:background="@drawable/play_button"/>
 
-        <TextView
+        <FrameLayout
+            android:id="@+id/tv_song_name"
             android:layout_width="240dp"
             android:layout_height="match_parent"
-            android:text="Тут будет название песни"
-            android:textSize="18sp"
-            android:textAlignment="center"
-            android:layout_weight="1"
-            android:paddingTop="11dp"
-            android:maxLines="1"/>
+            android:paddingLeft="5dp"
+            android:layout_weight="1">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="Тут будет название песни"
+                android:textSize="18sp"
+                android:textAlignment="center"
+                android:paddingTop="11dp"
+                android:maxLines="1"/>
+        </FrameLayout>
 
         <ImageButton
             android:id="@+id/prev"

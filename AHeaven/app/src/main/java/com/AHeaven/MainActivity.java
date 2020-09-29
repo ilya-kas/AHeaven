@@ -16,7 +16,18 @@ import com.AHeaven.ui.TabSelectionAdapter;
 public class MainActivity extends FragmentActivity {
     static Resources r;
     ViewPager viewPager;
-    boolean last = true;
+    public boolean wardrobeFragmentNow = true;
+    boolean launch;
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        if (launch){
+            User.load(this); //загрузка данных о пользователе
+            launch = false;
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,12 +41,11 @@ public class MainActivity extends FragmentActivity {
 
         TabLayout tabSelector = findViewById(R.id.tabs); //панель переключения вкладок
         tabSelector.setupWithViewPager(viewPager);
-
-        User.load(this); //загрузка данных о пользователе
+        launch = true;
     }
 
-    public void setLast(boolean last) {
-        this.last = last;
+    public void setWardrobeFragmentNow(boolean wardrobeFragmentNow) {
+        this.wardrobeFragmentNow = wardrobeFragmentNow;
     }
 
     public static int DPtoPX(int dp){         //метод перевода px в dp
@@ -49,12 +59,18 @@ public class MainActivity extends FragmentActivity {
 
     @Override
     public void onBackPressed() {
-        if (last)
+        if (wardrobeFragmentNow)
             super.onBackPressed();
         else{
             getSupportFragmentManager().beginTransaction().
                     replace(R.id.container_first, PlaylistFragment.newInstance()).commit();
-            last = true;
+            wardrobeFragmentNow = true;
         }
+    }
+
+    @Override
+    protected void onStop() {
+        User.save(this);
+        super.onStop();
     }
 }

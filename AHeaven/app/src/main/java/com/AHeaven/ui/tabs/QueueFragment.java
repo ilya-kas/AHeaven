@@ -1,12 +1,11 @@
 package com.AHeaven.ui.tabs;
 
-import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -19,13 +18,10 @@ import com.AHeaven.R;
 import com.AHeaven.Song;
 import com.AHeaven.User;
 
-import java.io.File;
-import java.io.IOException;
-
 //класс фрагмента, который отображает очередь воспроизведения
 public class QueueFragment extends Fragment implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener {
     View fragment;
-    boolean playState;
+    boolean isNowPlaying;
     MediaPlayer player;
 
     public static QueueFragment newInstance() {
@@ -37,19 +33,7 @@ public class QueueFragment extends Fragment implements MediaPlayer.OnPreparedLis
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        player = new MediaPlayer();/*MediaPlayer.create(getContext(),R.raw.song);
-        player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                try {
-                    player.prepare();
-                    player.seekTo(0);
-                }
-                catch (Throwable t) {
-                    t.printStackTrace();
-                }
-            }
-        });*/
+        player = new MediaPlayer();
     }
 
     @Override
@@ -59,26 +43,26 @@ public class QueueFragment extends Fragment implements MediaPlayer.OnPreparedLis
         fragment = inflater.inflate(R.layout.queue_fragment, container, false);
         User.nomPlaying = 0;
 
-        playState = false;
+        isNowPlaying = false;
         final ImageButton play = fragment.findViewById(R.id.play);
         play.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (User.getQueueLength()==0)
                     return;
-                if (!playState){
+                if (!isNowPlaying){
                     play.setBackgroundResource(R.drawable.pause_button);
                     player.start();
-                    playState = true;
+                    isNowPlaying = true;
                 }else{
                     play.setBackgroundResource(R.drawable.play_button);
                     player.pause();
-                    playState = false;
+                    isNowPlaying = false;
                 }
             }
         });
 
-        ImageButton prev = fragment.findViewById(R.id.prev);
+        ImageButton prev = fragment.findViewById(R.id.prev);    //выбрать предыдущую песню
         prev.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -87,10 +71,13 @@ public class QueueFragment extends Fragment implements MediaPlayer.OnPreparedLis
                     User.nomPlaying=User.getQueueLength()-1;
                 updateUI();
                 prepareSong();
+                play.setBackgroundResource(R.drawable.pause_button);
+                isNowPlaying = true;
+                player.start();
             }
         });
 
-        ImageButton next = fragment.findViewById(R.id.next);
+        ImageButton next = fragment.findViewById(R.id.next);    //выбрать следующую песню
         next.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -98,6 +85,9 @@ public class QueueFragment extends Fragment implements MediaPlayer.OnPreparedLis
                 User.nomPlaying%=User.getQueueLength();
                 updateUI();
                 prepareSong();
+                play.setBackgroundResource(R.drawable.pause_button);
+                isNowPlaying = true;
+                player.start();
             }
         });
         return fragment;
@@ -106,6 +96,11 @@ public class QueueFragment extends Fragment implements MediaPlayer.OnPreparedLis
     public void updateUI(){
         LinearLayout queue = fragment.findViewById(R.id.queue);
         queue.removeAllViews();
+        if (User.getQueueLength()>0){
+            FrameLayout frameLayout = fragment.findViewById(R.id.tv_song_name);
+            frameLayout.removeAllViews();
+            frameLayout.addView(createSongNameAuthor(User.getFromQueue(User.nomPlaying),18));
+        }
         for (int i=0;i<User.getQueueLength();i++){
             final Song current = User.getFromQueue(i);
             LinearLayout line = new LinearLayout(getContext());
@@ -120,7 +115,7 @@ public class QueueFragment extends Fragment implements MediaPlayer.OnPreparedLis
             tv_nom.setPadding(0,10,10,0);
             line.addView(tv_nom);
 
-            addSongNameAuthor(current,line);
+            line.addView(createSongNameAuthor(current,18));
 
             ImageButton minus = new ImageButton(getContext());
             minus.setImageResource(R.drawable.minus);
@@ -131,9 +126,9 @@ public class QueueFragment extends Fragment implements MediaPlayer.OnPreparedLis
             minus.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if ((User.getQueueLength()-1)==User.nomPlaying)
-                        User.nomPlaying=Math.max(User.nomPlaying-1,0);
                     User.removeFromQueue(finalI);
+                    if (finalI==User.nomPlaying && isNowPlaying)
+                        player.start();
                 }
             });
 
@@ -170,60 +165,43 @@ public class QueueFragment extends Fragment implements MediaPlayer.OnPreparedLis
     }
 
     public void prepareSong(){
-        System.out.println(User.getFromQueue(User.nomPlaying).source);
+        player.release();
         player = MediaPlayer.create(getContext(),User.getFromQueue(User.nomPlaying).source);
-        player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                try {
-                    player.prepare();
-                    player.seekTo(0);
-                }
-                catch (Throwable t) {
-                    t.printStackTrace();
-                }
-            }
-        });
-        /*try {
-            player.release();
-            player = new MediaPlayer();
-            player.setDataSource(User.getFromQueue(User.nomPlaying).source);
-            player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            player.setOnCompletionListener(this);
-            player.prepare();
-            player.seekTo(0);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }*/
+        player.setOnCompletionListener(this);
     }
 
-    private void addSongNameAuthor(Song x, LinearLayout layout){
+    private LinearLayout createSongNameAuthor(Song x, float size){
         LinearLayout names = new LinearLayout(getContext());
         names.setOrientation(LinearLayout.VERTICAL);
 
         TextView TVsongName = new TextView(getContext());          //надпись конкретной песни
         TVsongName.setText(x.name);
-        TVsongName.setTextSize(18);
+        TVsongName.setTextSize(size);
 
         TextView author = new TextView(getContext());          //надпись конкретной песни
         author.setText(x.author);
-        author.setTextSize(14);
+        author.setTextSize(size-4);
 
         names.addView(TVsongName);
         names.addView(author);
         names.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT,1f));
 
-        layout.addView(names);
+        return names;
     }
 
     @Override
     public void onPrepared(MediaPlayer mp) {
+        player.seekTo(0);
         player.start();
     }
 
     @Override
     public void onCompletion(MediaPlayer mp) {
-        //todo
+        User.nomPlaying++;
+        User.nomPlaying%=User.getQueueLength();
+        updateUI();
+        prepareSong();
+        player.start();
     }
 }

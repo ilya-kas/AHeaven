@@ -1,5 +1,8 @@
 package com.AHeaven;
 
+import android.content.Context;
+import android.util.Log;
+
 import com.AHeaven.ui.tabs.QueueFragment;
 
 import java.util.ArrayList;
@@ -14,15 +17,25 @@ public class User {
     private static QueueFragment q;
     public static int nomPlaying;
 
-    public static void load(MainActivity activity){
+    public static void load(Context context){
         playlists = new ArrayList<>();
         queue = new LinkedList<>();
         playlistCount = 0;
 
-        playlistCount+=1;              //пока что инициализация 2 плейлистами
-        playlists.add(new Playlist("hello"));
-        playlistCount+=1;              //пока что инициализация 2 плейлистами
-        playlists.add(new Playlist("world"));
+        DBHelper db = new DBHelper(context);
+        playlists = db.getPlaylists();
+        playlistCount = playlists.size();
+        for (Playlist x:playlists){
+            db.loadSongsFromPlaylist(x);
+        }
+    }
+
+    public static void save(Context context){
+        DBHelper db = new DBHelper(context);
+        db.savePlaylists(playlists);
+        for (Playlist x:playlists){
+            db.saveSongsFromPlaylist(x.name,Arrays.asList(x.getSongs()));
+        }
     }
 
     public static Playlist getPlaylist(int nom) {
@@ -50,15 +63,17 @@ public class User {
             q.prepareSong();
     }
     public static void addToQueue(Playlist list){
-        if (list.getLength()==0)
+        if (list.getSize()==0)
             return;
         queue.addAll(Arrays.asList(list.getSongs()));
         q.updateUI();
-        if (queue.size()==list.getLength())
+        if (queue.size()==list.getSize())
             q.prepareSong();
     }
     public static void removeFromQueue(int nom){
         queue.remove(nom);
+        if (nom<User.nomPlaying)
+            User.nomPlaying=Math.max(User.nomPlaying-1,0);
         q.updateUI();
         if (queue.size()==0)
             return;
@@ -73,6 +88,12 @@ public class User {
     }
 
     public static void addPlaylist(Playlist list){
+        for (int i=0;i<playlistCount;i++){
+            if (playlists.get(i).name.equals(list.name)) {
+                Log.i("Same names", "Playlist with the same name");
+                return;
+            }
+        }
         playlistCount++;
         playlists.add(list);
     }

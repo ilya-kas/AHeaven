@@ -18,6 +18,8 @@ public class Song {
         this.name = name;
         this.length = length;
         author = "Unknown";
+        if (name.equals(""))
+            this.name = "Noname";
     }
 
     /**
@@ -28,5 +30,9 @@ public class Song {
         this.name = name;
         this.author = author;
         this.length = length;
+        if (name.equals(""))
+            this.name = "Noname";
+        if (author.equals(""))
+            this.author = "Unknown";
     }
 }

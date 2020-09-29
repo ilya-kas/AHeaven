@@ -1,7 +1,10 @@
 package com.AHeaven.ui.tabs;
 
 import android.app.Dialog;
+import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,6 +25,10 @@ import com.AHeaven.R;
 import com.AHeaven.User;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * класс фрагмента выбора плейлистов
  */
@@ -30,8 +37,7 @@ public class PlaylistFragment extends Fragment {
     ViewGroup _container;
 
     public static PlaylistFragment newInstance() {
-        PlaylistFragment fragment = new PlaylistFragment();
-        return fragment;
+        return new PlaylistFragment();
     }
 
     @Override
@@ -53,8 +59,10 @@ public class PlaylistFragment extends Fragment {
         create.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                User.addPlaylist(new Playlist(
-                                            ((EditText) addPlaylist.findViewById(R.id.et_name)) .getText().toString()));
+                String playlistName = ((EditText) addPlaylist.findViewById(R.id.et_name)) .getText().toString().trim();
+                if (playlistName.equals(""))
+                    return;
+                User.addPlaylist(new Playlist(playlistName));
                 updateUI();
                 addPlaylist.dismiss();
             }
@@ -93,9 +101,20 @@ public class PlaylistFragment extends Fragment {
             TextView left = new TextView(getContext());    //левый плейлист в строке
             left.setBackground(getResources().getDrawable(R.drawable.playlist));
             left.setText(User.getPlaylist(i).name);
-            left.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+            int textSize = 15;
+            left.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
             left.setTextColor(getResources().getColor(R.color.white));
-            left.setPadding(MainActivity.DPtoPX(37), MainActivity.DPtoPX(97), 0, 0);
+
+            switch (getLinesCount(left,(String) left.getText(),left.getTextSize())){     //отступы и размеры в зависимости от количества строк
+                case 1:left.setPadding(MainActivity.DPtoPX(37), MainActivity.DPtoPX(99), 0, 0); break;
+                case 2:left.setPadding(MainActivity.DPtoPX(33), MainActivity.DPtoPX(94), 0, 0); break;
+                default: left.setPadding(MainActivity.DPtoPX(28), MainActivity.DPtoPX(95), 0, 0);
+                        do {
+                            left.setTextSize(TypedValue.COMPLEX_UNIT_SP,--textSize);
+                        }while (getLinesCount(left, (String) left.getText(),left.getTextSize())>2);
+            }
+            left.setWidth(MainActivity.DPtoPX(150));
+            left.setHeight(MainActivity.DPtoPX(150));
             row.addView(left);//добавляем плейлист
 
             final int finalI = i;
@@ -107,7 +126,7 @@ public class PlaylistFragment extends Fragment {
                             .replace(R.id.container_first, BoxFragment.newInstance(User.getPlaylist(finalI)), "box")
                             .addToBackStack(null)
                             .commit();
-                    ((MainActivity) getActivity()).setLast(false);
+                    ((MainActivity) getActivity()).setWardrobeFragmentNow(false);
                 }
             });
 
@@ -115,10 +134,22 @@ public class PlaylistFragment extends Fragment {
                 TextView right = new TextView(getContext());    //левый плейлист в строке
                 right.setBackground(getResources().getDrawable(R.drawable.playlist));
                 right.setText(User.getPlaylist(i+1).name);
-                right.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+                textSize = 15;
+                right.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
                 right.setTextColor(getResources().getColor(R.color.white));
-                right.setPadding(MainActivity.DPtoPX(37), MainActivity.DPtoPX(97), 0, 0);
+
+                switch (getLinesCount(right,(String) right.getText(),right.getTextSize())){     //отступы и размеры в зависимости от количества строк
+                    case 1:right.setPadding(MainActivity.DPtoPX(37), MainActivity.DPtoPX(99), 0, 0); break;
+                    case 2:right.setPadding(MainActivity.DPtoPX(33), MainActivity.DPtoPX(94), 0, 0); break;
+                    default: right.setPadding(MainActivity.DPtoPX(28), MainActivity.DPtoPX(95), 0, 0);
+                        do {
+                            right.setTextSize(TypedValue.COMPLEX_UNIT_SP,--textSize);
+                        }while (getLinesCount(right, (String) right.getText(),right.getTextSize())>2);
+                }
+
                 right.setLayoutParams(params);
+                right.setWidth(MainActivity.DPtoPX(150));
+                right.setHeight(MainActivity.DPtoPX(150));
                 row.addView(right); //добавляем плейлист
 
                 right.setOnClickListener(new View.OnClickListener() {
@@ -129,7 +160,7 @@ public class PlaylistFragment extends Fragment {
                                 .replace(R.id.container_first, BoxFragment.newInstance(User.getPlaylist(finalI + 1)), "box")
                                 .addToBackStack(null)
                                 .commit();
-                        ((MainActivity) getActivity()).setLast(false);
+                        ((MainActivity) getActivity()).setWardrobeFragmentNow(false);
                     }
                 });
             }
@@ -142,6 +173,93 @@ public class PlaylistFragment extends Fragment {
             row.setBackgroundResource(R.drawable.shelf);
             row.setPadding(MainActivity.DPtoPX(25), MainActivity.DPtoPX(16), 0, 0);
             layout.addView(row);
+        }
+    }
+
+    int getLinesCount(TextView tv, String text, float size){  //считает количество строк в textview при размере шрифта size
+        Paint paint = new Paint();
+        paint.setTextSize(size);
+        paint.setTypeface(Typeface.DEFAULT);
+
+        float textViewWidthPx = MainActivity.DPtoPX(100);
+
+        List<String> strings = splitWordsIntoStringsThatFit(text, textViewWidthPx, paint);
+        tv.setText(TextUtils.join("\n", strings));
+
+        int lineCount = strings.size();
+        return lineCount;
+    }
+
+
+    /**
+     * дальше идут методы, помогающие разбить текст на строки
+     * чтобы посчитать длину
+     */
+
+    public List<String> splitWordsIntoStringsThatFit(String source, float maxWidthPx, Paint paint) {
+        ArrayList<String> result = new ArrayList<>();
+
+        ArrayList<String> currentLine = new ArrayList<>();
+
+        String[] sources = source.split("\\s");
+        for(String chunk : sources) {
+            if(paint.measureText(chunk) < maxWidthPx) {
+                processFitChunk(maxWidthPx, paint, result, currentLine, chunk);
+            } else {
+                //the chunk is too big, split it.
+                List<String> splitChunk = splitIntoStringsThatFit(chunk, maxWidthPx, paint);
+                for(String chunkChunk : splitChunk) {
+                    processFitChunk(maxWidthPx, paint, result, currentLine, chunkChunk);
+                }
+            }
+        }
+        if(! currentLine.isEmpty()) {
+            result.add(TextUtils.join(" ", currentLine));
+        }
+        return result;
+    }
+
+    /**
+     * Splits a string to multiple strings each of which does not exceed the width
+     * of maxWidthPx.
+     */
+    private List<String> splitIntoStringsThatFit(String source, float maxWidthPx, Paint paint) {
+        if(TextUtils.isEmpty(source) || paint.measureText(source) <= maxWidthPx) {
+            return Arrays.asList(source);
+        }
+
+        ArrayList<String> result = new ArrayList<>();
+        int start = 0;
+        for(int i = 1; i <= source.length(); i++) {
+            String substr = source.substring(start, i);
+            if(paint.measureText(substr) >= maxWidthPx) {
+                //this one doesn't fit, take the previous one which fits
+                String fits = source.substring(start, i - 1);
+                result.add(fits);
+                start = i - 1;
+            }
+            if (i == source.length()) {
+                String fits = source.substring(start, i);
+                result.add(fits);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Processes the chunk which does not exceed maxWidth.
+     */
+    private void processFitChunk(float maxWidth, Paint paint, ArrayList<String> result, ArrayList<String> currentLine, String chunk) {
+        currentLine.add(chunk);
+        String currentLineStr = TextUtils.join(" ", currentLine);
+        if (paint.measureText(currentLineStr) >= maxWidth) {
+            //remove chunk
+            currentLine.remove(currentLine.size() - 1);
+            result.add(TextUtils.join(" ", currentLine));
+            currentLine.clear();
+            //ok because chunk fits
+            currentLine.add(chunk);
         }
     }
 }

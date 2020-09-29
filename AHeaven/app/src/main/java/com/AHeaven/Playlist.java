@@ -1,6 +1,7 @@
 package com.AHeaven;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Playlist {
     public String name;
@@ -24,8 +25,11 @@ public class Playlist {
     public void addSong(Song x){
         songs.add(x);
     }
+    public void addSong(List<Song> x){
+        songs.addAll(x);
+    }
     public void removeSong(Song x){
         songs.remove(x);
     }
-    public int getLength(){return songs.size();}
+    public int getSize(){return songs.size();}
 }
