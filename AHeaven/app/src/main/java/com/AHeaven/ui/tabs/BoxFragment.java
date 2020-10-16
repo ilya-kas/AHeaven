@@ -6,6 +6,7 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -13,6 +14,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -59,8 +61,11 @@ public class BoxFragment extends Fragment {
         add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
                 intent.setType("audio/*");
+                intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                        | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
                 startActivityForResult(intent,addSongCode);
             }
         });
@@ -137,7 +142,7 @@ public class BoxFragment extends Fragment {
             tv_Length.setPadding(0,10,0,0);
             tv_Length.setTextColor(getResources().getColor(R.color.white));
 
-            ImageButton dots = new ImageButton(getContext());
+            final ImageButton dots = new ImageButton(getContext());
             dots.setImageResource(R.drawable.dots);
             dots.setBackground(null);
             dots.setLayoutParams(new LinearLayout.LayoutParams(130, 110));
@@ -146,7 +151,24 @@ public class BoxFragment extends Fragment {
             dots.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    //todo
+                    PopupMenu popupMenu = new PopupMenu(getContext(),dots);
+                    popupMenu.inflate(R.menu.song_popupmenu);
+                    popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                        @Override
+                        public boolean onMenuItemClick(MenuItem item) {
+                            switch (item.getItemId()){
+                                case R.id.remove_song:
+                                    playlist.removeSong(finalI);
+                                    updateUI();
+                                    return true;
+                                case R.id.add_song_to_another:
+                                    //todo
+                                default:
+                                    return false;
+                            }
+                        }
+                    });
+                    popupMenu.show();
                 }
             });
 
@@ -173,12 +195,18 @@ public class BoxFragment extends Fragment {
                     add.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            playlist.addSong(new Song(data.getData(),
+                            playlist.addSong(new Song(data.getData(),           //добавление песни
                                     ((EditText)addSong.findViewById(R.id.et_name)).getText().toString().trim(),
                                     ((EditText)addSong.findViewById(R.id.et_author)).getText().toString().trim(),
                                     322));
-                            Song x = playlist.getSong(playlist.getSize()-1);
+                            final int takeFlags = data.getFlags()                  //флаги доступа
+                                    & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                    | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                            getContext().getContentResolver().takePersistableUriPermission(data.getData(), takeFlags);
+
+                            Song x = playlist.getSong(playlist.getSize()-1);   //узнаём длину песни
                             x.length = getDuration(x);
+
                             updateUI();
                             addSong.dismiss();
                         }

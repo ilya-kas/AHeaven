@@ -28,8 +28,8 @@ public class Playlist {
     public void addSong(List<Song> x){
         songs.addAll(x);
     }
-    public void removeSong(Song x){
-        songs.remove(x);
+    public void removeSong(int nom){
+        songs.remove(nom);
     }
     public int getSize(){return songs.size();}
 }

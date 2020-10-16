@@ -45,6 +45,24 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
     public void loadSongsFromPlaylist(Playlist list){
+        /*String[] projection = new String[] {media-database-columns-to-retrieve};
+        String selection = sql-where-clause-with-placeholder-variables;
+        String[] selectionArgs = new String[] {
+                values-of-placeholder-variables
+        };
+        String sortOrder = sql-order-by-clause;
+        Cursor cursor = getApplicationContext().getContentResolver().query(
+                MediaStore.media-type.Media.EXTERNAL_CONTENT_URI,
+                projection,
+                selection,
+                selectionArgs,
+                sortOrder
+        );
+        while (cursor.moveToNext()) {
+            // Use an ID column from the projection to get
+            // a URI representing the media item itself.
+        }*/
+
         String query = "SELECT * FROM " + tableName +" WHERE "+ PLAYLIST+" = '"+list.name.replace(' ','_')+"'";
 
         SQLiteDatabase db = getReadableDatabase();
@@ -75,31 +93,30 @@ public class DBHelper extends SQLiteOpenHelper {
             do{
                 Playlist x = new Playlist(cursor.getString(0));
                 list.add(x);
-                Log.i("NEXT",x.name);
             }while (cursor.moveToNext());
         }
         cursor.close();
         return list;
     }
 
-    public void saveSongsFromPlaylist(String name, List<Song> list){
+    public void saveSongs(List<Playlist> lists){
         SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL("DROP TABLE "+tableName);
         db.execSQL("CREATE TABLE " + tableName + "(" + ROW_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
                 URI + " TEXT," + NAME + " TEXT," + AUTHOR + " TEXT," + LENGTH + " INTEGER," + PLAYLIST +" TEXT)");
 
-        for (Song x:list){
-            ContentValues values = new ContentValues();
-            values.put(URI,x.source.toString());
-            values.put(NAME,x.name);
-            values.put(AUTHOR,x.author);
-            values.put(LENGTH,x.length);
-            name = name.replace(' ','_');
-            values.put(PLAYLIST,name);
+        for (Playlist list:lists)
+            for (Song x:list.getSongs()){
+                ContentValues values = new ContentValues();
+                values.put(URI,x.source.toString());
+                values.put(NAME,x.name);
+                values.put(AUTHOR,x.author);
+                values.put(LENGTH,x.length);
+                String name = list.name.replace(' ','_');
+                values.put(PLAYLIST,name);
 
-            db.insert(tableName, null,values);
-        }
-        db.close();
+                db.insert(tableName, null,values);
+            }
     }
 
     public void savePlaylists(List<Playlist> list){
@@ -113,6 +130,5 @@ public class DBHelper extends SQLiteOpenHelper {
 
             db.insert(mainTableName, null,values);
         }
-        db.close();
     }
 }

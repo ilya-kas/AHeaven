@@ -1,5 +1,6 @@
 package com.AHeaven.ui.tabs;
 
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -17,6 +18,8 @@ import androidx.fragment.app.Fragment;
 import com.AHeaven.R;
 import com.AHeaven.Song;
 import com.AHeaven.User;
+
+import java.io.IOException;
 
 //класс фрагмента, который отображает очередь воспроизведения
 public class QueueFragment extends Fragment implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener {

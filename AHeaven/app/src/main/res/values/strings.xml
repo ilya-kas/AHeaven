@@ -5,4 +5,6 @@
     <string name="tab_text_3">Профиль</string>
     <string name="left_box_button">Добавить песни</string>
     <string name="right_box_button">Добавить в конец очереди</string>
+    <string name="item1_string">Удалить</string>
+    <string name="item2_string">Добавить в плейлист</string>
 </resources>

@@ -33,9 +33,7 @@ public class User {
     public static void save(Context context){
         DBHelper db = new DBHelper(context);
         db.savePlaylists(playlists);
-        for (Playlist x:playlists){
-            db.saveSongsFromPlaylist(x.name,Arrays.asList(x.getSongs()));
-        }
+        db.saveSongs(playlists);
     }
 
     public static Playlist getPlaylist(int nom) {
