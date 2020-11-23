@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -58,7 +59,7 @@ public class PlaylistFragment extends Fragment {
         Button create = addPlaylist.findViewById(R.id.b_create);
         create.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(View v) {       //кнопка в правом нижнем углу "добавить плейлист"
                 String playlistName = ((EditText) addPlaylist.findViewById(R.id.et_name)) .getText().toString().trim();
                 if (playlistName.equals(""))
                     return;
@@ -131,7 +132,7 @@ public class PlaylistFragment extends Fragment {
             });
 
             if (i + 1 < User.playlistCount) {                        //правый плейлист в строке
-                TextView right = new TextView(getContext());    //левый плейлист в строке
+                /*TextView right = new TextView(getContext());    //левый плейлист в строке
                 right.setBackground(getResources().getDrawable(R.drawable.playlist));
                 right.setText(User.getPlaylist(i+1).name);
                 textSize = 15;
@@ -149,7 +150,29 @@ public class PlaylistFragment extends Fragment {
 
                 right.setLayoutParams(params);
                 right.setWidth(MainActivity.DPtoPX(150));
-                right.setHeight(MainActivity.DPtoPX(150));
+                right.setHeight(MainActivity.DPtoPX(150));*/
+                FrameLayout right = new FrameLayout(getContext());    //левый плейлист в строке
+                TextView tVName = new TextView(getContext());
+                right.addView(tVName);
+                right.setBackground(getResources().getDrawable(R.drawable.playlist));
+
+                tVName.setText(User.getPlaylist(i+1).name);
+                textSize = 15;
+                tVName.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+                tVName.setTextColor(getResources().getColor(R.color.white));
+
+                switch (getLinesCount(tVName,(String) tVName.getText(),tVName.getTextSize())){     //отступы и размеры в зависимости от количества строк
+                    case 1:tVName.setPadding(MainActivity.DPtoPX(37), MainActivity.DPtoPX(99), 0, 0); break;
+                    case 2:tVName.setPadding(MainActivity.DPtoPX(33), MainActivity.DPtoPX(94), 0, 0); break;
+                    default: tVName.setPadding(MainActivity.DPtoPX(28), MainActivity.DPtoPX(95), 0, 0);
+                        do {
+                            tVName.setTextSize(TypedValue.COMPLEX_UNIT_SP,--textSize);
+                        }while (getLinesCount(tVName, (String) tVName.getText(),tVName.getTextSize())>2);
+                }
+
+                //FrameLayout.LayoutParams fLSize = new FrameLayout.LayoutParams(450,450);
+                //fLSize.setMargins(MainActivity.DPtoPX(20), 0, 0, 0);
+                //right.setLayoutParams(fLSize);
                 row.addView(right); //добавляем плейлист
 
                 right.setOnClickListener(new View.OnClickListener() {

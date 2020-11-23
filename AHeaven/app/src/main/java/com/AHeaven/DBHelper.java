@@ -45,30 +45,12 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
     public void loadSongsFromPlaylist(Playlist list){
-        /*String[] projection = new String[] {media-database-columns-to-retrieve};
-        String selection = sql-where-clause-with-placeholder-variables;
-        String[] selectionArgs = new String[] {
-                values-of-placeholder-variables
-        };
-        String sortOrder = sql-order-by-clause;
-        Cursor cursor = getApplicationContext().getContentResolver().query(
-                MediaStore.media-type.Media.EXTERNAL_CONTENT_URI,
-                projection,
-                selection,
-                selectionArgs,
-                sortOrder
-        );
-        while (cursor.moveToNext()) {
-            // Use an ID column from the projection to get
-            // a URI representing the media item itself.
-        }*/
-
         String query = "SELECT * FROM " + tableName +" WHERE "+ PLAYLIST+" = '"+list.name.replace(' ','_')+"'";
 
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(query,null);
 
-        if (cursor.moveToFirst()){
+        if (cursor.moveToFirst()){ //восстановление всех песен
             do{
                 Song x = new Song(null,"",0);
                 x.source = Uri.parse(cursor.getString(1));
@@ -105,7 +87,7 @@ public class DBHelper extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE " + tableName + "(" + ROW_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
                 URI + " TEXT," + NAME + " TEXT," + AUTHOR + " TEXT," + LENGTH + " INTEGER," + PLAYLIST +" TEXT)");
 
-        for (Playlist list:lists)
+        for (Playlist list:lists)  //сохранение песен по каждому плейлисту
             for (Song x:list.getSongs()){
                 ContentValues values = new ContentValues();
                 values.put(URI,x.source.toString());

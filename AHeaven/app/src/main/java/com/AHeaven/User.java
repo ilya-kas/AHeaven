@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 public class User {
     public static int playlistCount;
@@ -43,41 +44,55 @@ public class User {
     public static void setQueueFragment(QueueFragment q1){
         q = q1;
     }
+
     public static void clearQueue(){
         queue.clear();
-        q.updateUI();
+        nomPlaying = -1;
         q.pauseSong();
     }
+
     public static void addToQueue(Song song){
+        if (nomPlaying<0)
+            nomPlaying = 0;
         queue.add(song);
         q.updateUI();
         if (queue.size()==1)
             q.prepareSong();
     }
+
     public static void addToQueue(Song[] songs){
+        if (songs.length==0)
+            return;
+        if (nomPlaying<0)
+            nomPlaying = 0;
         queue.addAll(Arrays.asList(songs));
         q.updateUI();
         if (queue.size()==songs.length)
             q.prepareSong();
     }
+
     public static void addToQueue(Playlist list){
         if (list.getSize()==0)
             return;
+        if (nomPlaying<0)
+            nomPlaying = 0;
         queue.addAll(Arrays.asList(list.getSongs()));
         q.updateUI();
         if (queue.size()==list.getSize())
             q.prepareSong();
     }
+
     public static void removeFromQueue(int nom){
         queue.remove(nom);
         if (nom<User.nomPlaying)
-            User.nomPlaying=Math.max(User.nomPlaying-1,0);
-        q.updateUI();
-        if (queue.size()==0)
-            return;
-        if (nom==nomPlaying)
+            nomPlaying = nomPlaying-1;
+        if (nomPlaying>=queue.size()){
+            nomPlaying = queue.size()-1;
             q.prepareSong();
+        }
+        q.updateUI();
     }
+
     public static Song getFromQueue(int nom){
         return queue.get(nom);
     }
@@ -94,5 +109,14 @@ public class User {
         }
         playlistCount++;
         playlists.add(list);
+    }
+
+    public static void shuffle(){ //перетасовка очереди
+        Random rand = new Random();
+        int j;
+        for (int i=1;i<queue.size();i++){
+            j = i-rand.nextInt(i+1);
+            queue.add(j,queue.remove(i));
+        }
     }
 }

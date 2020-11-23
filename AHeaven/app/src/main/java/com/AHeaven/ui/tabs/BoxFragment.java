@@ -60,7 +60,7 @@ public class BoxFragment extends Fragment {
         Button add = fragment.findViewById(R.id.addToPlaylist);
         add.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(View v) {   //добавить в плейлист
                 Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
                 intent.setType("audio/*");
                 intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
@@ -114,7 +114,7 @@ public class BoxFragment extends Fragment {
 
             addSongNameAuthor(songs[i],layout);
 
-            ImageButton plus = new ImageButton(getContext());
+            ImageButton plus = new ImageButton(getContext()); //кнопка добавить песню в конец очереди
             plus.setImageResource(R.drawable.plus);
             plus.setBackground(null);
             plus.setLayoutParams(new LinearLayout.LayoutParams(130, 110));
@@ -130,9 +130,6 @@ public class BoxFragment extends Fragment {
 
             String text;
             TextView tv_Length = new TextView(getContext());
-            if (songs[i].length<60)
-                text = "0:"+ songs[i].length;
-            else
             if (songs[i].length%60<10)
                 text = songs[i].length/60+":0"+songs[i].length%60;
             else
