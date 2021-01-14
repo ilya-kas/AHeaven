@@ -21,9 +21,9 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.AHeaven.MainActivity;
-import com.AHeaven.Playlist;
+import com.AHeaven.playing.Playlist;
 import com.AHeaven.R;
-import com.AHeaven.User;
+import com.AHeaven.playing.User;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
@@ -56,11 +56,13 @@ public class PlaylistFragment extends Fragment {
 
         final Dialog addPlaylist = new Dialog(getContext());
         addPlaylist.setContentView(R.layout.playlist_creation_dialog);
+        final EditText name = addPlaylist.findViewById(R.id.et_name);
+        name.setText("");
         Button create = addPlaylist.findViewById(R.id.b_create);
         create.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {       //кнопка в правом нижнем углу "добавить плейлист"
-                String playlistName = ((EditText) addPlaylist.findViewById(R.id.et_name)) .getText().toString().trim();
+                String playlistName = name.getText().toString().trim();
                 if (playlistName.equals(""))
                     return;
                 User.addPlaylist(new Playlist(playlistName));

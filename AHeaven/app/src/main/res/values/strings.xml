@@ -3,10 +3,11 @@
     <string name="tab_text_1">Плейлисты</string>
     <string name="tab_text_2">Очередь</string>
     <string name="tab_text_3">Профиль</string>
-    <string name="left_box_button">Добавить песни</string>
+    <string name="left_box_button">Добавить песню</string>
     <string name="right_box_button">Добавить в конец очереди</string>
     <string name="item1_string">Удалить</string>
     <string name="item2_string">Добавить в плейлист</string>
     <string name="clear">Очистить</string>
     <string name="shuffle">Перемешать</string>
+    <string name="item3_string">Изменить</string>
 </resources>

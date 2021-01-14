@@ -1,14 +1,22 @@
 package com.AHeaven;
 
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.res.Resources;
 import android.os.Bundle;
 
+import com.AHeaven.playing.MyService;
+import com.AHeaven.playing.User;
 import com.AHeaven.ui.tabs.PlaylistFragment;
 import com.google.android.material.tabs.TabLayout;
 
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager.widget.ViewPager;
 
+import android.os.IBinder;
+import android.os.RemoteException;
+import android.support.v4.media.session.MediaControllerCompat;
 import android.util.TypedValue;
 
 import com.AHeaven.ui.TabSelectionAdapter;
@@ -18,6 +26,8 @@ public class MainActivity extends FragmentActivity {
     ViewPager viewPager;
     public boolean wardrobeFragmentNow = true;
     boolean launch;
+    MyService.PlayerServiceBinder serviceBinder;
+    public static MediaControllerCompat mediaController;
 
     @Override
     protected void onStart() {
@@ -42,6 +52,28 @@ public class MainActivity extends FragmentActivity {
         TabLayout tabSelector = findViewById(R.id.tabs); //панель переключения вкладок
         tabSelector.setupWithViewPager(viewPager);
         launch = true;
+
+        bindService(new Intent(this, MyService.class), new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                serviceBinder = (MyService.PlayerServiceBinder) service;
+                try {
+                    mediaController = new MediaControllerCompat(
+                            MainActivity.this, serviceBinder.getMediaSessionToken());
+                    mediaController.registerCallback(new MediaControllerCompat.Callback(){});
+                }
+                catch (RemoteException e) {
+                    mediaController = null;
+                }
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                User.q.pauseSong();
+                serviceBinder = null;
+                mediaController = null;
+            }
+        }, BIND_AUTO_CREATE);
     }
 
     public void setWardrobeFragmentNow(boolean wardrobeFragmentNow) {

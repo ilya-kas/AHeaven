@@ -10,7 +10,6 @@ import androidx.fragment.app.Fragment;
 
 import com.AHeaven.MainActivity;
 import com.AHeaven.R;
-import com.AHeaven.User;
 
 import java.util.Objects;
 

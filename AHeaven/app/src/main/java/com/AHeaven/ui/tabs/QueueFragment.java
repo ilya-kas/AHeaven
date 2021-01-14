@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -17,14 +16,15 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import com.AHeaven.MainActivity;
 import com.AHeaven.R;
-import com.AHeaven.Song;
-import com.AHeaven.User;
+import com.AHeaven.playing.Song;
+import com.AHeaven.playing.User;
 
 //класс фрагмента, который отображает очередь воспроизведения
 public class QueueFragment extends Fragment implements MediaPlayer.OnCompletionListener {
     View fragment;
-    boolean isNowPlaying;
+    public boolean isNowPlaying;
     MediaPlayer player;
     Thread seekBarUpdate;
 
@@ -52,17 +52,7 @@ public class QueueFragment extends Fragment implements MediaPlayer.OnCompletionL
         play.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (User.getQueueLength()==0)
-                    return;
-                if (!isNowPlaying){
-                    play.setBackgroundResource(R.drawable.pause_button);
-                    player.start();
-                    isNowPlaying = true;
-                }else{
-                    play.setBackgroundResource(R.drawable.play_button);
-                    player.pause();
-                    isNowPlaying = false;
-                }
+                playButtonClick();
             }
         });
 
@@ -127,7 +117,26 @@ public class QueueFragment extends Fragment implements MediaPlayer.OnCompletionL
         return fragment;
     }
 
-    private void moveToPrev() {
+    public void playButtonClick(){
+        ImageButton play = fragment.findViewById(R.id.play);
+        if (User.getQueueLength()==0)
+            return;
+        if (!isNowPlaying){
+            if (MainActivity.mediaController != null)
+                MainActivity.mediaController.getTransportControls().play();
+            play.setBackgroundResource(R.drawable.pause_button);
+            player.start();
+            isNowPlaying = true;
+        }else{
+            if (MainActivity.mediaController != null)
+                MainActivity.mediaController.getTransportControls().pause();
+            play.setBackgroundResource(R.drawable.play_button);
+            player.pause();
+            isNowPlaying = false;
+        }
+    }
+
+    public void moveToPrev() {
         User.nomPlaying--;
         if (User.nomPlaying<0)
             User.nomPlaying=User.getQueueLength()-1;
@@ -138,7 +147,7 @@ public class QueueFragment extends Fragment implements MediaPlayer.OnCompletionL
         player.start();
     }
 
-    private void moveToNext() {
+    public void moveToNext() {
         User.nomPlaying++;
         User.nomPlaying%=User.getQueueLength();
         updateUI();
@@ -213,6 +222,8 @@ public class QueueFragment extends Fragment implements MediaPlayer.OnCompletionL
                     player.start();
                     fragment.findViewById(R.id.play).setBackgroundResource(R.drawable.pause_button);
                     isNowPlaying = true;
+                    if (MainActivity.mediaController != null)
+                        MainActivity.mediaController.getTransportControls().play();
                 }
             });
             queue.addView(line);
@@ -300,8 +311,13 @@ public class QueueFragment extends Fragment implements MediaPlayer.OnCompletionL
     @Override
     public void onCompletion(MediaPlayer mp) {
         User.nomPlaying++;
-        User.nomPlaying%=User.getQueueLength();
+        if (User.getQueueLength()>0)
+            User.nomPlaying%=User.getQueueLength();
+        else
+            User.nomPlaying = 0;
         updateUI();
+        if (User.getQueueLength()==0)
+            return;
         prepareSong();
         player.start();
     }

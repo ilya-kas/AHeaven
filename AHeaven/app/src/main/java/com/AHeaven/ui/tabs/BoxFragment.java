@@ -2,9 +2,10 @@ package com.AHeaven.ui.tabs;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,10 +22,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.AHeaven.Playlist;
+import com.AHeaven.playing.Playlist;
 import com.AHeaven.R;
-import com.AHeaven.Song;
-import com.AHeaven.User;
+import com.AHeaven.playing.Song;
+import com.AHeaven.playing.User;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -114,7 +115,7 @@ public class BoxFragment extends Fragment {
 
             addSongNameAuthor(songs[i],layout);
 
-            ImageButton plus = new ImageButton(getContext()); //кнопка добавить песню в конец очереди
+            final ImageButton plus = new ImageButton(getContext()); //кнопка добавить песню в конец очереди
             plus.setImageResource(R.drawable.plus);
             plus.setBackground(null);
             plus.setLayoutParams(new LinearLayout.LayoutParams(130, 110));
@@ -148,7 +149,7 @@ public class BoxFragment extends Fragment {
             dots.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    PopupMenu popupMenu = new PopupMenu(getContext(),dots);
+                    final PopupMenu popupMenu = new PopupMenu(getContext(),dots);
                     popupMenu.inflate(R.menu.song_popupmenu);
                     popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                         @Override
@@ -159,7 +160,50 @@ public class BoxFragment extends Fragment {
                                     updateUI();
                                     return true;
                                 case R.id.add_song_to_another:
-                                    //todo
+                                    PopupMenu playlistsMenu = new PopupMenu(getContext(),dots);
+                                    playlistsMenu.inflate(R.menu.playlists_popupmenu);
+                                    for (int i=0;i<User.playlistCount;i++)
+                                        playlistsMenu.getMenu().add(User.getPlaylist(i).name);
+                                    playlistsMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                                        @Override
+                                        public boolean onMenuItemClick(MenuItem item) {
+                                            for (int i=0;i<User.playlistCount;i++) {
+                                                Playlist list = User.getPlaylist(i);
+                                                if (list.name == item.getTitle()) {
+                                                    list.addSong(playlist.getSong(finalI));
+                                                    break;
+                                                }
+                                            }
+                                            return true;
+                                        }
+                                    });
+                                    playlistsMenu.show();
+                                    return true;
+                                case R.id.change_song:
+                                    final Dialog addSong = new Dialog(getContext());         //диалог получения данных о песне
+                                    addSong.setContentView(R.layout.sond_additing_dialog);
+                                    final EditText et_name = addSong.findViewById(R.id.et_name);
+                                    final EditText et_author = addSong.findViewById(R.id.et_author);
+
+                                    final Song song = playlist.getSong(finalI);
+
+                                    et_name.setText(song.name);
+                                    et_author.setText(song.author);
+
+                                    addSong.show();
+
+                                    Button add = addSong.findViewById(R.id.b_add);
+                                    add.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            song.name = et_name.getText().toString().trim();
+                                            song.author = et_author.getText().toString().trim();
+
+                                            updateUI();
+                                            addSong.dismiss();
+                                        }
+                                    });
+                                    return true;
                                 default:
                                     return false;
                             }
@@ -181,36 +225,26 @@ public class BoxFragment extends Fragment {
         switch (requestCode){
             case addSongCode:
                 if (resultCode == RESULT_OK){
-                    final Dialog addSong = new Dialog(getContext());         //диалог получения данных о песне
-                    addSong.setContentView(R.layout.sond_additing_dialog);
-                    EditText et = addSong.findViewById(R.id.et_name);
-                    String name = data.getData().getPath();
-                    name = name.substring(name.lastIndexOf('/')+1,name.lastIndexOf('.'));
-                    et.setText(name);
-                    addSong.show();
-                    Button add = addSong.findViewById(R.id.b_add);
-                    add.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            playlist.addSong(new Song(data.getData(),           //добавление песни
-                                    ((EditText)addSong.findViewById(R.id.et_name)).getText().toString().trim(),
-                                    ((EditText)addSong.findViewById(R.id.et_author)).getText().toString().trim(),
-                                    322));
-                            final int takeFlags = data.getFlags()                  //флаги доступа
-                                    & (Intent.FLAG_GRANT_READ_URI_PERMISSION
-                                    | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                            getContext().getContentResolver().takePersistableUriPermission(data.getData(), takeFlags);
+                    Uri path = data.getData();
+                    Song song = new Song(path, "Noname", "Noname", 322);
+                    setNameAuthor(song);
+                    song.length = getDuration(song);
+                    playlist.addSong(song);
 
-                            Song x = playlist.getSong(playlist.getSize()-1);   //узнаём длину песни
-                            x.length = getDuration(x);
-
-                            updateUI();
-                            addSong.dismiss();
-                        }
-                    });
+                    final int takeFlags = data.getFlags()                  //флаги доступа
+                            & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    getContext().getContentResolver().takePersistableUriPermission(path, takeFlags);
+                    updateUI();
                 }
                 break;
         }
+    }
+
+    private void setNameAuthor(Song x){
+        MediaMetadataRetriever metaRetriever = new MediaMetadataRetriever();
+        metaRetriever.setDataSource(getContext(),x.source);
+        x.author = metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+        x.name = metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
     }
 
     private int getDuration(Song song){

@@ -5,11 +5,11 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.media.MediaPlayer;
 import android.net.Uri;
-import android.util.Log;
 
-import java.io.IOException;
+import com.AHeaven.playing.Playlist;
+import com.AHeaven.playing.Song;
+
 import java.util.LinkedList;
 import java.util.List;
 
