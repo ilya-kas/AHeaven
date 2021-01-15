@@ -35,7 +35,7 @@ public class FirstPageContainer extends Fragment {
         View root = inflater.inflate(R.layout.container, container, false);
         if (((MainActivity) Objects.requireNonNull(getActivity())).wardrobeFragmentNow)
             getChildFragmentManager().beginTransaction()
-                    .replace(R.id.container_first, PlaylistFragment.newInstance())  //добавляем фрагмент шкафа по умолчанию
+                    .replace(R.id.container_first, PlaylistsFragment.newInstance())  //добавляем фрагмент шкафа по умолчанию
                     .commit();
         return root;
     }

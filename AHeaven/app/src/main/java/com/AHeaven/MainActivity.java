@@ -7,8 +7,9 @@ import android.content.res.Resources;
 import android.os.Bundle;
 
 import com.AHeaven.playing.MyService;
+import com.AHeaven.playing.QueueController;
 import com.AHeaven.playing.User;
-import com.AHeaven.ui.tabs.PlaylistFragment;
+import com.AHeaven.ui.tabs.PlaylistsFragment;
 import com.google.android.material.tabs.TabLayout;
 
 import androidx.fragment.app.FragmentActivity;
@@ -35,6 +36,7 @@ public class MainActivity extends FragmentActivity {
 
         if (launch){
             User.load(this); //загрузка данных о пользователе
+            QueueController.init(getApplicationContext());
             launch = false;
         }
     }
@@ -69,7 +71,7 @@ public class MainActivity extends FragmentActivity {
 
             @Override
             public void onServiceDisconnected(ComponentName name) {
-                User.q.pauseSong();
+                QueueController.stop();
                 serviceBinder = null;
                 mediaController = null;
             }
@@ -95,7 +97,7 @@ public class MainActivity extends FragmentActivity {
             super.onBackPressed();
         else{
             getSupportFragmentManager().beginTransaction().
-                    replace(R.id.container_first, PlaylistFragment.newInstance()).commit();
+                    replace(R.id.container_first, PlaylistsFragment.newInstance()).commit();
             wardrobeFragmentNow = true;
         }
     }

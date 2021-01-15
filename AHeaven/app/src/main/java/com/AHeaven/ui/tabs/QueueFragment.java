@@ -1,6 +1,5 @@
 package com.AHeaven.ui.tabs;
 
-import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,28 +15,25 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-import com.AHeaven.MainActivity;
 import com.AHeaven.R;
+import com.AHeaven.playing.QueueController;
 import com.AHeaven.playing.Song;
 import com.AHeaven.playing.User;
 
 //класс фрагмента, который отображает очередь воспроизведения
-public class QueueFragment extends Fragment implements MediaPlayer.OnCompletionListener {
+public class QueueFragment extends Fragment{
     View fragment;
-    public boolean isNowPlaying;
-    MediaPlayer player;
-    Thread seekBarUpdate;
+    public Thread seekBarUpdate;
 
     public static QueueFragment newInstance() {       //создаём экземпляр вкладки
         QueueFragment fragment = new QueueFragment();
-        User.setQueueFragment(fragment);
+        User.updateQueueFragment(fragment);
         return fragment;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        player = new MediaPlayer();
     }
 
     @Override
@@ -45,10 +41,8 @@ public class QueueFragment extends Fragment implements MediaPlayer.OnCompletionL
             @NonNull LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
         fragment = inflater.inflate(R.layout.queue_fragment, container, false);
-        User.nomPlaying = 0;
 
-        isNowPlaying = false;                                        //кнопка проиграть внизу
-        final ImageButton play = fragment.findViewById(R.id.play);
+        final ImageButton play = fragment.findViewById(R.id.play);//кнопка проиграть внизу
         play.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -60,9 +54,8 @@ public class QueueFragment extends Fragment implements MediaPlayer.OnCompletionL
         clear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                User.clearQueue();
+                QueueController.clear();
                 play.setBackgroundResource(R.drawable.play_button);
-                isNowPlaying = false;
                 updateUI();
             }
         });
@@ -71,9 +64,8 @@ public class QueueFragment extends Fragment implements MediaPlayer.OnCompletionL
         shuffle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                User.shuffle();
+                QueueController.shuffle();
                 updateUI();
-                prepareSong();
             }
         });
 
@@ -93,15 +85,13 @@ public class QueueFragment extends Fragment implements MediaPlayer.OnCompletionL
             }
         });
 
-        final TextView currentTime = fragment.findViewById(R.id.tv_song_time);
         SeekBar seekBar = fragment.findViewById(R.id.seek_bar);
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {  //полоса проигранной части песни
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                currentTime.setText(lengthToString(player.getCurrentPosition()/1000));
                 if (!fromUser) return;
-                if (User.getQueueLength()==0) return;
-                player.seekTo(Math.round(player.getDuration()*(seekBar.getProgress()/100f)));
+                if (QueueController.getNomPlaying()==-1) return;
+                QueueController.seekTo(seekBar.getProgress()/100f);
             }
 
             @Override
@@ -119,57 +109,48 @@ public class QueueFragment extends Fragment implements MediaPlayer.OnCompletionL
 
     public void playButtonClick(){
         ImageButton play = fragment.findViewById(R.id.play);
-        if (User.getQueueLength()==0)
+        if (QueueController.getNomPlaying()==-1)
             return;
-        if (!isNowPlaying){
-            if (MainActivity.mediaController != null)
-                MainActivity.mediaController.getTransportControls().play();
+        if (!QueueController.isNowPlaying()) {
+            QueueController.play();
             play.setBackgroundResource(R.drawable.pause_button);
-            player.start();
-            isNowPlaying = true;
-        }else{
-            if (MainActivity.mediaController != null)
-                MainActivity.mediaController.getTransportControls().pause();
+        }else {
+            QueueController.pause();
             play.setBackgroundResource(R.drawable.play_button);
-            player.pause();
-            isNowPlaying = false;
         }
     }
 
     public void moveToPrev() {
-        User.nomPlaying--;
-        if (User.nomPlaying<0)
-            User.nomPlaying=User.getQueueLength()-1;
+        QueueController.moveToPrev();
         updateUI();
-        prepareSong();
-        fragment.findViewById(R.id.play).setBackgroundResource(R.drawable.pause_button);
-        isNowPlaying = true;
-        player.start();
+        if (QueueController.isNowPlaying())
+            fragment.findViewById(R.id.play).setBackgroundResource(R.drawable.pause_button);
     }
 
     public void moveToNext() {
-        User.nomPlaying++;
-        User.nomPlaying%=User.getQueueLength();
+        QueueController.moveToNext();
         updateUI();
-        prepareSong();
-        fragment.findViewById(R.id.play).setBackgroundResource(R.drawable.pause_button);
-        isNowPlaying = true;
-        player.start();
+        if (QueueController.isNowPlaying())
+            fragment.findViewById(R.id.play).setBackgroundResource(R.drawable.pause_button);
     }
 
     public void updateUI(){
+        if (QueueController.isNowPlaying())
+            fragment.findViewById(R.id.play).setBackgroundResource(R.drawable.pause_button);
+        else
+            fragment.findViewById(R.id.play).setBackgroundResource(R.drawable.play_button);
         LinearLayout queue = fragment.findViewById(R.id.queue);
         queue.removeAllViews();
-        if (User.getQueueLength()>0){  //очистка
+        if (QueueController.getQueueLength()>0){  //очистка
             FrameLayout frameLayout = fragment.findViewById(R.id.tv_song_name);
             frameLayout.removeAllViews();
-            frameLayout.addView(createSongNameAuthor(User.getFromQueue(User.nomPlaying),18));
+            frameLayout.addView(createSongNameAuthor(QueueController.getSongFromQueue(QueueController.getNomPlaying()),18));
         }
-        for (int i=0;i<User.getQueueLength();i++){ //отрисовка строчек песен
-            final Song current = User.getFromQueue(i);
+        for (int i=0;i<QueueController.getQueueLength();i++){ //отрисовка строчек песен
+            final Song current = QueueController.getSongFromQueue(i);
             LinearLayout line = new LinearLayout(getContext());
             line.setOrientation(LinearLayout.HORIZONTAL);
-            if (i==User.nomPlaying)
+            if (i==QueueController.getNomPlaying())
                 line.setBackgroundColor(getResources().getColor(R.color.lightBlue));
 
             TextView tv_nom = new TextView(getContext());          //надпись конкретной песни
@@ -190,18 +171,10 @@ public class QueueFragment extends Fragment implements MediaPlayer.OnCompletionL
             minus.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    boolean flag = finalI==User.nomPlaying; //если удаляли песню, которая игралась
-                    User.removeFromQueue(finalI);
-                    if (User.getQueueLength()==0) {
-                        player.stop();
-                        fragment.findViewById(R.id.play).setBackgroundResource(R.drawable.pause_button);
-                        isNowPlaying = false;
-                        return;
-                    }
-                    if (flag)
-                        prepareSong();
-                    if (flag && isNowPlaying)
-                        player.start();
+                    QueueController.removeFromQueue(finalI);
+                    if (QueueController.getQueueLength()==0)
+                        fragment.findViewById(R.id.play).setBackgroundResource(R.drawable.play_button);
+                    updateUI();
                 }
             });
 
@@ -216,63 +189,13 @@ public class QueueFragment extends Fragment implements MediaPlayer.OnCompletionL
             line.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) { //при нажатии проигрывать именно эту
-                    User.nomPlaying= finalI;
+                    QueueController.moveTo(finalI);
                     updateUI();
-                    prepareSong();
-                    player.start();
                     fragment.findViewById(R.id.play).setBackgroundResource(R.drawable.pause_button);
-                    isNowPlaying = true;
-                    if (MainActivity.mediaController != null)
-                        MainActivity.mediaController.getTransportControls().play();
                 }
             });
             queue.addView(line);
         }
-    }
-
-    public void pauseSong(){
-        player.pause();
-    }
-
-    public void prepareSong(){ //подготавливает следующую песню к запуску
-        if (User.nomPlaying<0)
-            return;
-        player.release();
-        player = MediaPlayer.create(getContext(),User.getFromQueue(User.nomPlaying).source);
-        player.setOnCompletionListener(this);
-
-        TextView songLength = fragment.findViewById(R.id.tv_song_length);
-        songLength.setText(lengthToString(player.getDuration()/1000));
-        seekBarUpdate = new Thread(new Runnable() {    //обновление прогресса песни. Чтобы ползунок двигался
-            @Override
-            public void run() {     //обновление полосы проигранной части песни
-                SeekBar sb = fragment.findViewById(R.id.seek_bar);
-                Song song = User.getFromQueue(User.nomPlaying);
-                sb.setProgress(0);
-                while (sb.getProgress()<100){
-                    try {
-                        if (User.nomPlaying>=User.getQueueLength())
-                            return;
-                        if (User.getFromQueue(User.nomPlaying)!=song)
-                            return;
-                        sb.setProgress(Math.round(((float)player.getCurrentPosition())/player.getDuration()*100));
-                    }catch (Exception e){
-                        e.printStackTrace();
-                        try {
-                            Thread.sleep(20);
-                        } catch (InterruptedException ex) {
-                            ex.printStackTrace();
-                        }
-                    }
-                }
-            }
-        });
-        player.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mp) {
-                seekBarUpdate.start();
-            }
-        });
     }
 
     private String lengthToString(int length){  //длину в секундах в строку mm:ss
@@ -304,21 +227,42 @@ public class QueueFragment extends Fragment implements MediaPlayer.OnCompletionL
         return names;
     }
 
-    /**
-     * implementing parts for MediaPlayer
-     */
+    Runnable changeCurrentTime = new Runnable() {
+        @Override
+        public void run() {
+            TextView currentTime = fragment.findViewById(R.id.tv_song_time);
+            currentTime.setText(lengthToString(QueueController.getCurrentPosition()/1000));
+        }
+    };
 
-    @Override
-    public void onCompletion(MediaPlayer mp) {
-        User.nomPlaying++;
-        if (User.getQueueLength()>0)
-            User.nomPlaying%=User.getQueueLength();
-        else
-            User.nomPlaying = 0;
-        updateUI();
-        if (User.getQueueLength()==0)
-            return;
-        prepareSong();
-        player.start();
+    public void prepareSong(){ //подготавливает следующую песню к запуску
+        TextView songLength = fragment.findViewById(R.id.tv_song_length);
+        songLength.setText(lengthToString(
+                QueueController.getSongFromQueue(QueueController.getNomPlaying()).length));
+        seekBarUpdate = new Thread(new Runnable() {    //обновление прогресса песни. Чтобы ползунок двигался
+            @Override
+            public void run() {     //обновление полосы проигранной части песни
+                SeekBar sb = fragment.findViewById(R.id.seek_bar);
+                Song song = QueueController.getSongFromQueue(QueueController.getNomPlaying());
+                sb.setProgress(0);
+                while (sb.getProgress()<100){
+                    try {
+                        if (QueueController.getNomPlaying()>=QueueController.getQueueLength())
+                            return;
+                        if (QueueController.getSongFromQueue(QueueController.getNomPlaying())!=song)
+                            return;
+                        sb.setProgress(Math.round((QueueController.getCurrentPosition()/1000f)/song.length*sb.getMax()));
+                        getActivity().runOnUiThread(changeCurrentTime);
+                    }catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        Thread.sleep(20);
+                    } catch (InterruptedException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }
+        });
     }
 }

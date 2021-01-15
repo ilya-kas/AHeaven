@@ -9,9 +9,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 
 import com.AHeaven.R;
-import com.AHeaven.ui.tabs.BoxFragment;
 import com.AHeaven.ui.tabs.FirstPageContainer;
-import com.AHeaven.ui.tabs.PlaylistFragment;
 import com.AHeaven.ui.tabs.ProfileFragment;
 import com.AHeaven.ui.tabs.QueueFragment;
 

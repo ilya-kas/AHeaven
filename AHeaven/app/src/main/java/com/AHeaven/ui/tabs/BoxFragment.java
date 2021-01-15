@@ -24,6 +24,7 @@ import androidx.fragment.app.Fragment;
 
 import com.AHeaven.playing.Playlist;
 import com.AHeaven.R;
+import com.AHeaven.playing.QueueController;
 import com.AHeaven.playing.Song;
 import com.AHeaven.playing.User;
 
@@ -74,7 +75,7 @@ public class BoxFragment extends Fragment {
         toQ.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                User.addToQueue(playlist);
+                QueueController.addToQueue(playlist);
             }
         });
 
@@ -125,7 +126,7 @@ public class BoxFragment extends Fragment {
             plus.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    User.addToQueue(songs[finalI]);
+                    QueueController.addToQueue(songs[finalI]);
                 }
             });
 

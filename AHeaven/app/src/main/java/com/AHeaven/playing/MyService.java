@@ -5,8 +5,10 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.os.Binder;
@@ -46,6 +48,16 @@ public class MyService extends Service {
     MediaSessionCompat mediaSession;
     private final MediaMetadataCompat.Builder metadataBuilder = new MediaMetadataCompat.Builder();
 
+    private final BroadcastReceiver becomingNoisyReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // Disconnecting headphones - stop playback
+            if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intent.getAction())) {
+                mediaSessionCallback.onPause();
+            }
+        }
+    };
+
     MediaSessionCompat.Callback mediaSessionCallback = new MediaSessionCompat.Callback() {
         int currentState = PlaybackStateCompat.STATE_STOPPED;
 
@@ -56,15 +68,18 @@ public class MyService extends Service {
             if (audioFocusResult != AudioManager.AUDIOFOCUS_REQUEST_GRANTED)
                 return;
 
-            updateMetadataFromSong(User.getFromQueue(User.nomPlaying));// Заполняем данные о треке
+            updateMetadataFromSong(QueueController.getSongFromQueue(QueueController.getNomPlaying()));// Заполняем данные о треке
             mediaSession.setActive(true);// Указываем, что наше приложение теперь активный плеер и кнопки. на окне блокировки должны управлять именно нами
 
             mediaSession.setPlaybackState(stateBuilder.setState(PlaybackStateCompat.STATE_PLAYING,
                             PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 1).build());  // Сообщаем новое состояние
             currentState = PlaybackStateCompat.STATE_PLAYING;
 
-            if (!User.q.isNowPlaying)
-                User.q.playButtonClick();
+            registerReceiver(becomingNoisyReceiver, new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY));
+
+            QueueController.play();
+            User.q.updateUI();
+            refreshNotificationAndForegroundStatus(currentState);
         }
 
         @Override
@@ -73,13 +88,21 @@ public class MyService extends Service {
                             PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 1).build()); // Сообщаем новое состояние
             currentState = PlaybackStateCompat.STATE_PAUSED;
 
-            if (User.q.isNowPlaying)
-                User.q.playButtonClick();
+            try {
+                unregisterReceiver(becomingNoisyReceiver);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+            QueueController.pause();
+            User.q.updateUI();
+            refreshNotificationAndForegroundStatus(currentState);
         }
 
         @Override
         public void onStop() {
-            User.q.pauseSong();
+            QueueController.pause();
+            User.q.updateUI();
 
             audioManager.abandonAudioFocus(audioFocusChangeListener);
 
@@ -88,23 +111,29 @@ public class MyService extends Service {
             currentState = PlaybackStateCompat.STATE_STOPPED;
 
             refreshNotificationAndForegroundStatus(currentState);
-
+            try {
+                unregisterReceiver(becomingNoisyReceiver);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
             stopSelf();
         }
 
 
         @Override
         public void onSkipToNext() {
-            User.q.moveToNext();
-            updateMetadataFromSong(User.getFromQueue(User.nomPlaying));
+            QueueController.moveToNext();
+            User.q.updateUI();
+            updateMetadataFromSong(QueueController.getSongFromQueue(QueueController.getNomPlaying()));
 
             refreshNotificationAndForegroundStatus(currentState);
         }
 
         @Override
         public void onSkipToPrevious() {
-            User.q.moveToPrev();
-            updateMetadataFromSong(User.getFromQueue(User.nomPlaying));
+            QueueController.moveToPrev();
+            User.q.updateUI();
+            updateMetadataFromSong(QueueController.getSongFromQueue(QueueController.getNomPlaying()));
 
             refreshNotificationAndForegroundStatus(currentState);
         }
@@ -137,7 +166,7 @@ public class MyService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        User.q.pauseSong();
+        QueueController.pause();
         mediaSession.release();
         audioManager.abandonAudioFocus(audioFocusChangeListener);
     }
@@ -147,7 +176,7 @@ public class MyService extends Service {
         public void onAudioFocusChange(int focusChange) {
             switch (focusChange) {
                 case AudioManager.AUDIOFOCUS_GAIN:
-                    if (User.q.isNowPlaying)
+                    if (QueueController.isNowPlaying())
                         mediaSessionCallback.onPlay(); // Не очень красиво
                     break;
                 case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK: //уведомление или другое "выделение"
