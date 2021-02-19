@@ -14,9 +14,11 @@ import android.media.AudioManager;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
+import android.os.RemoteException;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -221,40 +223,31 @@ public class MyService extends Service {
                 break;
         }
     }
+            //Toast.makeText(getApplicationContext(),"Проблемы с уведомлением", Toast.LENGTH_LONG).show();
 
     Notification getNotification(int playbackState) {
-        NotificationCompat.Builder builder = MediaStyleHelper.from(this, mediaSession);
+        NotificationCompat.Builder builder = MediaStyleHelper.from(this, mediaSession, (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE));
 
         // Добавляем кнопки
-        // ...на предыдущий трек
-        builder.addAction(new NotificationCompat.Action(android.R.drawable.ic_media_previous, "Previous",
+        builder.addAction(new NotificationCompat.Action(android.R.drawable.ic_media_previous, "Previous", // ...на предыдущий трек
                 MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)));
-
-        // ...play/pause
-        if (playbackState == PlaybackStateCompat.STATE_PLAYING)
+        if (playbackState == PlaybackStateCompat.STATE_PLAYING)                                               // ...play/pause
             builder.addAction(new NotificationCompat.Action(android.R.drawable.ic_media_pause, "Pause",
                     MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PLAY_PAUSE)));
         else
             builder.addAction(new NotificationCompat.Action(android.R.drawable.ic_media_play, "Play",
                     MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PLAY_PAUSE)));
-
-        // ...на следующий трек
-        builder.addAction(new NotificationCompat.Action(android.R.drawable.ic_media_next, "Next",
+        builder.addAction(new NotificationCompat.Action(android.R.drawable.ic_media_next, "Next",         // ...на следующий трек
                         MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_SKIP_TO_NEXT)));
 
         builder.setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
-                // В компактном варианте показывать Action с данным порядковым номером.
-                // В нашем случае это play/pause.
+                // В компактном варианте показывать Action с данным порядковым номером.В нашем случае это play/pause.
                 .setShowActionsInCompactView(1)
-                // Отображать крестик в углу уведомления для его закрытия.
-                // Это связано с тем, что для API < 21 из-за ошибки во фреймворке
-                // пользователь не мог смахнуть уведомление foreground-сервиса даже после вызова stopForeground(false).
-                // Так что это костыль. На API >= 21 крестик не отображается, там просто смахиваем уведомление.
+                // Отображать крестик в углу уведомления для его закрытия.На API >= 21 крестик не отображается, там просто смахиваем уведомление.
                 .setShowCancelButton(true)
                 // Указываем, что делать при нажатии на крестик или смахивании
                 .setCancelButtonIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_STOP))
-                // Передаем токен. Это важно для Android Wear. Если токен не передать,
-                // кнопка на Android Wear будет отображаться, но не будет ничего делать
+                // Передаем токен. Это важно для Android Wear. Если токен не передать, кнопка на Android Wear будет отображаться, но не будет ничего делать
                 .setMediaSession(mediaSession.getSessionToken()));
 
         builder.setSmallIcon(R.mipmap.ic_launcher);
@@ -268,3 +261,4 @@ public class MyService extends Service {
         return builder.build();
     }
 }
+

@@ -245,7 +245,11 @@ public class BoxFragment extends Fragment {
         MediaMetadataRetriever metaRetriever = new MediaMetadataRetriever();
         metaRetriever.setDataSource(getContext(),x.source);
         x.author = metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+        if (x.author == null)
+            x.author = "Noname";
         x.name = metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+        if (x.name == null)
+            x.name = "Unknown";
     }
 
     private int getDuration(Song song){

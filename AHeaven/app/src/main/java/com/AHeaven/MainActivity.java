@@ -1,8 +1,10 @@
 package com.AHeaven;
 
+import android.Manifest;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.os.Bundle;
 
@@ -12,6 +14,8 @@ import com.AHeaven.playing.User;
 import com.AHeaven.ui.tabs.PlaylistsFragment;
 import com.google.android.material.tabs.TabLayout;
 
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager.widget.ViewPager;
 
@@ -35,6 +39,11 @@ public class MainActivity extends FragmentActivity {
         super.onStart();
 
         if (launch){
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                int permissionStatus = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_MEDIA_LOCATION);
+                if (permissionStatus != PackageManager.PERMISSION_GRANTED)
+                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_MEDIA_LOCATION}, 123);
+            }
             User.load(this); //загрузка данных о пользователе
             QueueController.init(getApplicationContext());
             launch = false;

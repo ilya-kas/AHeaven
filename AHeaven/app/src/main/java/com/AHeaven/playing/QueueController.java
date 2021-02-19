@@ -170,6 +170,8 @@ public class QueueController implements MediaPlayer.OnCompletionListener {
         if (nomPlaying==-1) return;
         prepareSong();
         player.start();
+        if (MainActivity.mediaController != null)
+            MainActivity.mediaController.getTransportControls().play();
     }
 
     /**
@@ -219,7 +221,9 @@ public class QueueController implements MediaPlayer.OnCompletionListener {
             isNowPlaying = false;
         }
 
-        if (flag)
+        if (flag) {
             prepareSong();
+            play();
+        }
     }
 }
