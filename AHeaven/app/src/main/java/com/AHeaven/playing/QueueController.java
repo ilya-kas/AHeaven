@@ -12,6 +12,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
+/**
+ *класс, отвечающий за работу с бэкэндом очереди
+ */
 public class QueueController implements MediaPlayer.OnCompletionListener {
     private static List<Song> queue;
     private static int nomPlaying;

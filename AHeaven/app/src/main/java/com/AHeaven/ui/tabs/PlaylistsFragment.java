@@ -13,6 +13,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -101,24 +102,19 @@ public class PlaylistsFragment extends Fragment {
             row.setBackgroundResource(R.drawable.shelf);
             row.setPadding(MainActivity.DPtoPX(20), MainActivity.DPtoPX(16), 0, 0);
 
-            TextView left = new TextView(getContext());    //левый плейлист в строке
-            left.setBackground(getResources().getDrawable(R.drawable.playlist));
+            LinearLayout leftLL = (LinearLayout) LayoutInflater.from(getContext()).inflate(R.layout.box_image, row, false);
+            TextView left = leftLL.findViewById(R.id.box_button);
             left.setText(User.getPlaylist(i).name);
             int textSize = 15;
-            left.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
-            left.setTextColor(getResources().getColor(R.color.white));
-
             switch (getLinesCount(left,(String) left.getText(),left.getTextSize())){     //отступы и размеры в зависимости от количества строк
                 case 1:left.setPadding(MainActivity.DPtoPX(37), MainActivity.DPtoPX(99), 0, 0); break;
                 case 2:left.setPadding(MainActivity.DPtoPX(33), MainActivity.DPtoPX(94), 0, 0); break;
                 default: left.setPadding(MainActivity.DPtoPX(28), MainActivity.DPtoPX(95), 0, 0);
-                        do {
-                            left.setTextSize(TypedValue.COMPLEX_UNIT_SP,--textSize);
-                        }while (getLinesCount(left, (String) left.getText(),left.getTextSize())>2);
+                    do {
+                        left.setTextSize(TypedValue.COMPLEX_UNIT_SP,--textSize);
+                    }while (getLinesCount(left, (String) left.getText(),left.getTextSize())>2);
             }
-            left.setWidth(MainActivity.DPtoPX(150));
-            left.setHeight(MainActivity.DPtoPX(150));
-            row.addView(left);//добавляем плейлист
+            row.addView(leftLL);
 
             final int finalI = i;
             left.setOnClickListener(new View.OnClickListener() {
@@ -133,14 +129,11 @@ public class PlaylistsFragment extends Fragment {
                 }
             });
 
-            if (i + 1 < User.playlistCount) {                        //правый плейлист в строке
-                /*TextView right = new TextView(getContext());    //левый плейлист в строке
-                right.setBackground(getResources().getDrawable(R.drawable.playlist));
+            if (i + 1 < User.playlistCount) {
+                LinearLayout rightLL = (LinearLayout) LayoutInflater.from(getContext()).inflate(R.layout.box_image, row, false);
+                TextView right = rightLL.findViewById(R.id.box_button);
                 right.setText(User.getPlaylist(i+1).name);
                 textSize = 15;
-                right.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
-                right.setTextColor(getResources().getColor(R.color.white));
-
                 switch (getLinesCount(right,(String) right.getText(),right.getTextSize())){     //отступы и размеры в зависимости от количества строк
                     case 1:right.setPadding(MainActivity.DPtoPX(37), MainActivity.DPtoPX(99), 0, 0); break;
                     case 2:right.setPadding(MainActivity.DPtoPX(33), MainActivity.DPtoPX(94), 0, 0); break;
@@ -149,33 +142,7 @@ public class PlaylistsFragment extends Fragment {
                             right.setTextSize(TypedValue.COMPLEX_UNIT_SP,--textSize);
                         }while (getLinesCount(right, (String) right.getText(),right.getTextSize())>2);
                 }
-
-                right.setLayoutParams(params);
-                right.setWidth(MainActivity.DPtoPX(150));
-                right.setHeight(MainActivity.DPtoPX(150));*/
-                FrameLayout right = new FrameLayout(getContext());    //левый плейлист в строке
-                TextView tVName = new TextView(getContext());
-                right.addView(tVName);
-                right.setBackground(getResources().getDrawable(R.drawable.playlist));
-
-                tVName.setText(User.getPlaylist(i+1).name);
-                textSize = 15;
-                tVName.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
-                tVName.setTextColor(getResources().getColor(R.color.white));
-
-                switch (getLinesCount(tVName,(String) tVName.getText(),tVName.getTextSize())){     //отступы и размеры в зависимости от количества строк
-                    case 1:tVName.setPadding(MainActivity.DPtoPX(37), MainActivity.DPtoPX(99), 0, 0); break;
-                    case 2:tVName.setPadding(MainActivity.DPtoPX(33), MainActivity.DPtoPX(94), 0, 0); break;
-                    default: tVName.setPadding(MainActivity.DPtoPX(28), MainActivity.DPtoPX(95), 0, 0);
-                        do {
-                            tVName.setTextSize(TypedValue.COMPLEX_UNIT_SP,--textSize);
-                        }while (getLinesCount(tVName, (String) tVName.getText(),tVName.getTextSize())>2);
-                }
-
-                //FrameLayout.LayoutParams fLSize = new FrameLayout.LayoutParams(450,450);
-                //fLSize.setMargins(MainActivity.DPtoPX(20), 0, 0, 0);
-                //right.setLayoutParams(fLSize);
-                row.addView(right); //добавляем плейлист
+                row.addView(rightLL);
 
                 right.setOnClickListener(new View.OnClickListener() {
                     @Override

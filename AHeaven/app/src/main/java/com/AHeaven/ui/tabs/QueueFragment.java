@@ -14,16 +14,28 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.AHeaven.R;
 import com.AHeaven.playing.QueueController;
 import com.AHeaven.playing.Song;
 import com.AHeaven.playing.User;
+import com.AHeaven.ui.tabs.DragNDrop.QueueAdapter;
+import com.AHeaven.ui.tabs.DragNDrop.TouchAdapter;
+
+import java.util.LinkedList;
+import java.util.List;
 
 //класс фрагмента, который отображает очередь воспроизведения
 public class QueueFragment extends Fragment{
     View fragment;
     public Thread seekBarUpdate;
+
+    //часть для drag-n-drop
+    private QueueAdapter queueAdapter;
+    private ItemTouchHelper mItemTouchHelper;
 
     public static QueueFragment newInstance() {       //создаём экземпляр вкладки
         QueueFragment fragment = new QueueFragment();
@@ -96,14 +108,26 @@ public class QueueFragment extends Fragment{
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-
             }
         });
+
+        /*
+         * эта часть нужна для реализации drag-n-drop
+         */
+        queueAdapter = new QueueAdapter(this,fragment);
+        RecyclerView recyclerView = fragment.findViewById(R.id.queue);
+        recyclerView.setAdapter(queueAdapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+
+        //привязываю свой обработчик нажатий к recycler view очереди
+        ItemTouchHelper.Callback callback = new TouchAdapter(queueAdapter);
+        mItemTouchHelper = new ItemTouchHelper(callback);
+        mItemTouchHelper.attachToRecyclerView(recyclerView);
+
         return fragment;
     }
 
@@ -139,66 +163,17 @@ public class QueueFragment extends Fragment{
             fragment.findViewById(R.id.play).setBackgroundResource(R.drawable.pause_button);
         else
             fragment.findViewById(R.id.play).setBackgroundResource(R.drawable.play_button);
-        LinearLayout queue = fragment.findViewById(R.id.queue);
-        queue.removeAllViews();
+
         if (QueueController.getQueueLength()>0){  //очистка
             FrameLayout frameLayout = fragment.findViewById(R.id.tv_song_name);
             frameLayout.removeAllViews();
-            frameLayout.addView(createSongNameAuthor(QueueController.getSongFromQueue(QueueController.getNomPlaying()),18));
+            frameLayout.addView(createSongNameAuthor(QueueController.getSongFromQueue(QueueController.getNomPlaying())));
         }
-        for (int i=0;i<QueueController.getQueueLength();i++){ //отрисовка строчек песен
-            final Song current = QueueController.getSongFromQueue(i);
-            LinearLayout line = new LinearLayout(getContext());
-            line.setOrientation(LinearLayout.HORIZONTAL);
-            if (i==QueueController.getNomPlaying())
-                line.setBackgroundColor(getResources().getColor(R.color.lightBlue));
 
-            TextView tv_nom = new TextView(getContext());          //надпись конкретной песни
-            String text = (i+1) + ":";
-            tv_nom.setText(text);
-            tv_nom.setTextSize(22);
-            tv_nom.setPadding(0,10,10,0);
-            line.addView(tv_nom);
-
-            line.addView(createSongNameAuthor(current,18));
-
-            ImageButton minus = new ImageButton(getContext());  //кнопка удаления из плейлиста
-            minus.setImageResource(R.drawable.minus);
-            minus.setBackground(null);
-            minus.setLayoutParams(new LinearLayout.LayoutParams(130, 110));
-            minus.setScaleType(ImageView.ScaleType.FIT_XY);
-            final int finalI = i;
-            minus.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    QueueController.removeFromQueue(finalI);
-                    if (QueueController.getQueueLength()==0)
-                        fragment.findViewById(R.id.play).setBackgroundResource(R.drawable.play_button);
-                    updateUI();
-                }
-            });
-
-            TextView tv_Length = new TextView(getContext());
-            tv_Length.setText(lengthToString(current.length));
-            tv_Length.setTextSize(22);
-            tv_Length.setPadding(0,10,0,0);
-
-            line.addView(minus);
-            line.addView(tv_Length);
-
-            line.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) { //при нажатии проигрывать именно эту
-                    QueueController.moveTo(finalI);
-                    updateUI();
-                    fragment.findViewById(R.id.play).setBackgroundResource(R.drawable.pause_button);
-                }
-            });
-            queue.addView(line);
-        }
+        queueAdapter.update();
     }
 
-    private String lengthToString(int length){  //длину в секундах в строку mm:ss
+    public String lengthToString(int length){  //длину в секундах в строку mm:ss
         String text;
         if (length%60<10)
             text = length/60+":0"+length%60;
@@ -207,17 +182,17 @@ public class QueueFragment extends Fragment{
         return text;
     }
 
-    private LinearLayout createSongNameAuthor(Song x, float size){ //создаёт слой с названием песни и группы
+    private LinearLayout createSongNameAuthor(Song x){ //создаёт слой с названием песни и группы
         LinearLayout names = new LinearLayout(getContext());
         names.setOrientation(LinearLayout.VERTICAL);
 
         TextView TVsongName = new TextView(getContext());          //надпись конкретной песни
         TVsongName.setText(x.name);
-        TVsongName.setTextSize(size);
+        TVsongName.setTextSize(18);
 
         TextView author = new TextView(getContext());          //надпись конкретной песни
         author.setText(x.author);
-        author.setTextSize(size-4);
+        author.setTextSize(14);
 
         names.addView(TVsongName);
         names.addView(author);

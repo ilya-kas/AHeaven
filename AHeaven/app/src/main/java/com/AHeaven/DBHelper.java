@@ -10,6 +10,7 @@ import android.net.Uri;
 import com.AHeaven.playing.Playlist;
 import com.AHeaven.playing.Song;
 
+import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -57,6 +58,7 @@ public class DBHelper extends SQLiteOpenHelper {
                 x.name = cursor.getString(2);
                 x.author = cursor.getString(3);
                 x.length = cursor.getInt(4);
+                //todo сделать проверку на перемещение или удаление
                 list.addSong(x);
             }while (cursor.moveToNext());
         }
