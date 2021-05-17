@@ -21,7 +21,6 @@ import java.util.List;
 
 public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.ItemViewHolder> implements MovingAdapter {
 
-    private final List<LinearLayout> rows = new ArrayList<>();
     QueueFragment fragment;
     View finder;
 
@@ -31,14 +30,13 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.ItemViewHold
     }
 
     public void update(){
-        rows.clear();
         notifyDataSetChanged();
     }
 
     @NonNull
     @Override
     public ItemViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View line = LayoutInflater.from(parent.getContext()).inflate(R.layout.song_line,parent,false);
+        View line = LayoutInflater.from(parent.getContext()).inflate(R.layout.queue_song_line,parent,false);
         return new ItemViewHolder(line);
     }
 
@@ -79,7 +77,6 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.ItemViewHold
                 finder.findViewById(R.id.play).setBackgroundResource(R.drawable.pause_button);
             }
         });
-        rows.add(line);
     }
 
     @Override
@@ -89,14 +86,13 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.ItemViewHold
 
     @Override
     public void onItemMove(int fromPosition, int toPosition) {
-        LinearLayout movingLL = (LinearLayout) rows.remove(fromPosition);
-        rows.add(fromPosition < toPosition ? toPosition - 1 : toPosition, movingLL);
+        QueueController.moveSong(fromPosition,toPosition);
         notifyItemMoved(fromPosition, toPosition);
     }
 
     @Override
     public void onItemDismiss(int position) {
-        rows.remove(position);
+        QueueController.removeFromQueue(position);
         notifyItemRemoved(position);
     }
 
@@ -107,7 +103,7 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.ItemViewHold
 
         public ItemViewHolder(View itemView) {
             super(itemView);
-            row = (LinearLayout) itemView.findViewById(R.id.line);
+            row = itemView.findViewById(R.id.line);
         }
 
         @Override

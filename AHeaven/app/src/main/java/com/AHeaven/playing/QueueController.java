@@ -117,10 +117,20 @@ public class QueueController implements MediaPlayer.OnCompletionListener {
             MainActivity.mediaController.getTransportControls().play();
     }
 
+    /**
+     * перемещает песню по плейлисту
+     * @param from номер песни
+     * @param to куда двигаем
+     */
+    public static void moveSong(int from,int to){
+        Song x = queue.remove(from);
+        queue.add(to,x);
+    }
+
     public static void clear(){
         queue.clear();
-        nomPlaying = -1;
         pause();
+        nomPlaying = -1;
         prepared = false;
     }
 
@@ -226,7 +236,10 @@ public class QueueController implements MediaPlayer.OnCompletionListener {
 
         if (flag) {
             prepareSong();
-            play();
+            if (isNowPlaying) {
+                isNowPlaying = false;
+                play();
+            }
         }
     }
 }

@@ -5,12 +5,16 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.media.MediaPlayer;
 import android.net.Uri;
 
 import com.AHeaven.playing.Playlist;
 import com.AHeaven.playing.Song;
+import com.AHeaven.playing.User;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -58,11 +62,16 @@ public class DBHelper extends SQLiteOpenHelper {
                 x.name = cursor.getString(2);
                 x.author = cursor.getString(3);
                 x.length = cursor.getInt(4);
-                //todo сделать проверку на перемещение или удаление
-                list.addSong(x);
+                if (test(x.source))
+                    list.addSong(x);
             }while (cursor.moveToNext());
         }
         cursor.close();
+    }
+
+    //метод тестирует, осталась по этому пути песня или нет
+    private static boolean test(Uri path){
+        return true; //todo
     }
 
     public List<Playlist> getPlaylists(){

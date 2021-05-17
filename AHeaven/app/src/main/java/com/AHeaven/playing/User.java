@@ -1,16 +1,16 @@
 package com.AHeaven.playing;
 
 import android.content.Context;
+import android.net.Uri;
 import android.util.Log;
 
 import com.AHeaven.DBHelper;
 import com.AHeaven.ui.tabs.QueueFragment;
 
+import java.io.File;
+import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
 
 public class User {
     public static int playlistCount;
@@ -24,9 +24,8 @@ public class User {
         DBHelper db = new DBHelper(context);
         playlists = db.getPlaylists();
         playlistCount = playlists.size();
-        for (Playlist x:playlists){
+        for (Playlist x:playlists)
             db.loadSongsFromPlaylist(x);
-        }
     }
 
     public static void save(Context context){

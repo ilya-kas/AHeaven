@@ -20,11 +20,18 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.AHeaven.MainActivity;
 import com.AHeaven.playing.Playlist;
 import com.AHeaven.R;
 import com.AHeaven.playing.User;
+import com.AHeaven.ui.tabs.DragNDrop.PlaylistAdapter;
+import com.AHeaven.ui.tabs.DragNDrop.PlaylistTouchAdapter;
+import com.AHeaven.ui.tabs.DragNDrop.QueueAdapter;
+import com.AHeaven.ui.tabs.DragNDrop.QueueTouchAdapter;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;

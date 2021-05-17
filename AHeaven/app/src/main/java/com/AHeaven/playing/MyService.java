@@ -216,6 +216,7 @@ public class MyService extends Service {
             case PlaybackStateCompat.STATE_PAUSED:
                 // На паузе мы перестаем быть foreground, однако оставляем уведомление, чтобы пользователь мог нажать play
                 NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, getNotification(playbackState));
+                startForeground(NOTIFICATION_ID, getNotification(playbackState));
                 stopForeground(false);
                 break;
             default:

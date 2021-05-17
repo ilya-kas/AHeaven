@@ -25,6 +25,9 @@ public class Playlist {
     public void addSong(Song x){
         songs.add(x);
     }
+    public void addSong(int nom, Song x){
+        songs.add(nom, x);
+    }
     public void addSong(List<Song> x){
         songs.addAll(x);
     }

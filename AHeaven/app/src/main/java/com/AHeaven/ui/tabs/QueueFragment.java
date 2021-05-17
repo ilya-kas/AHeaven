@@ -7,7 +7,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -23,11 +22,7 @@ import com.AHeaven.playing.QueueController;
 import com.AHeaven.playing.Song;
 import com.AHeaven.playing.User;
 import com.AHeaven.ui.tabs.DragNDrop.QueueAdapter;
-import com.AHeaven.ui.tabs.DragNDrop.TouchAdapter;
-
-import java.util.LinkedList;
-import java.util.List;
-
+import com.AHeaven.ui.tabs.DragNDrop.QueueTouchAdapter;
 //класс фрагмента, который отображает очередь воспроизведения
 public class QueueFragment extends Fragment{
     View fragment;
@@ -35,7 +30,6 @@ public class QueueFragment extends Fragment{
 
     //часть для drag-n-drop
     private QueueAdapter queueAdapter;
-    private ItemTouchHelper mItemTouchHelper;
 
     public static QueueFragment newInstance() {       //создаём экземпляр вкладки
         QueueFragment fragment = new QueueFragment();
@@ -124,8 +118,8 @@ public class QueueFragment extends Fragment{
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         //привязываю свой обработчик нажатий к recycler view очереди
-        ItemTouchHelper.Callback callback = new TouchAdapter(queueAdapter);
-        mItemTouchHelper = new ItemTouchHelper(callback);
+        ItemTouchHelper.Callback callback = new QueueTouchAdapter(queueAdapter);
+        ItemTouchHelper mItemTouchHelper = new ItemTouchHelper(callback);
         mItemTouchHelper.attachToRecyclerView(recyclerView);
 
         return fragment;
@@ -169,6 +163,12 @@ public class QueueFragment extends Fragment{
             frameLayout.removeAllViews();
             frameLayout.addView(createSongNameAuthor(QueueController.getSongFromQueue(QueueController.getNomPlaying())));
         }
+
+        TextView tvSumLen = fragment.findViewById(R.id.tv_sum_len);
+        int len = 0;
+        for (int i=0;i<QueueController.getQueueLength();i++)
+            len += QueueController.getSongFromQueue(i).length;
+        tvSumLen.setText(lengthToString(len));
 
         queueAdapter.update();
     }
