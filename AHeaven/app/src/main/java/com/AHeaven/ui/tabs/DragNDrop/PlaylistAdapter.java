@@ -57,9 +57,14 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ItemVi
         author.setText(current.author);
 
         final ImageButton plus = line.findViewById(R.id.plus_button); //кнопка добавить песню в конец очереди
+        if (QueueController.contains(current))
+            plus.setColorFilter(Color.parseColor("#FFFF00"));
+        else
+            plus.setColorFilter(Color.parseColor("#FFFFFF"));
         plus.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                update();
                 QueueController.addToQueue(current);
             }
         });

@@ -60,6 +60,10 @@ public class QueueController implements MediaPlayer.OnCompletionListener {
         return queue.size();
     }
 
+    public static boolean contains(Song x){
+        return queue.contains(x);
+    }
+
     /**
      * методы управления воспроизведением
      */

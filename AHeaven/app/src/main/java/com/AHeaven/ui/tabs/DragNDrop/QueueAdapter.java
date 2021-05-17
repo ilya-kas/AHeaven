@@ -63,6 +63,7 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.ItemViewHold
                 if (QueueController.getQueueLength()==0)
                     finder.findViewById(R.id.play).setBackgroundResource(R.drawable.play_button);
                 fragment.updateUI();
+                //todo
             }
         });
 
